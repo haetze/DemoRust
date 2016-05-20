@@ -1,4 +1,4 @@
-//use std::thread;
+use std::thread;
 
 struct Point {
   x : i32,
@@ -31,15 +31,19 @@ impl Point {
 
 
 fn main() {
-    let p = Point::new(12, 21);
+    let p1 = Point::new(12, 21);
     let p2 = Point::new(21, 12);
-    let h = thread::spawn(p.print());
-    //thread::sleep_ms(100);
+    let p3 = Point::new(23, 32);
+    let h = thread::spawn(move || {
+        p1.print();
+    });
+    thread::sleep_ms(100);
     println!("Hello, world!");
-    p.print();
-    let sum = p.add(p2);
+    p2.print();
+    let sum = p2.add(p3);
     sum.print();
-    //h.join().unwrap();
+    h.join().unwrap();
+    
 
     
 }
