@@ -1,0 +1,33 @@
+
+enum Nat{
+    Epsilon,
+    Nat(Nat)
+}
+
+
+fn to_int(nat: &Nat) -> u32{
+    match nat{
+        &Nat::Epsilon => 0,
+        &Nat::Nat(prev) => 1+to_int(prev),
+    }
+}
+
+fn from_int(y: i32) -> Nat{
+    if y == 0 {
+        Nat::Epsilon
+    }else{
+        let x = from_int(y-1);
+        Nat::Nat(x)
+    }
+}
+
+
+
+fn main() {
+
+    let x = Nat::Epsilon;
+    let y = Nat::Nat(&x);
+    println!("{}", to_int(&y));
+
+    println!("{}", to_int(&from_int(5)));
+}
