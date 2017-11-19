@@ -6,7 +6,7 @@ struct Point {
 
 struct PointRef<'a>{
     x: &'a mut i32,
-    y: &'a mut i32,
+    //y: &'a mut i32,
 }
 
 //tuple struct
@@ -73,8 +73,8 @@ fn main() {
 
     println!("({},{})", point_b.x, point_b.y);
     {
-        let point_ref = PointRef{x: &mut point_b.x,
-                                 y: &mut point_b.y};
+        let point_ref = PointRef{x: &mut point_b.x}
+                                 //y: &mut point_b.y};
 
         println!("({},{})", point_a.x, point_a.y);
         *point_ref.x = 10;
