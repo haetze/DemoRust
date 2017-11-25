@@ -6,7 +6,7 @@ fn main() {
     for i in 0..n{
         handler_vec.push(thread::spawn(move || {
             println!("From child:{}", i);
-            i
+            i*2
         }));
     }
 
