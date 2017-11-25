@@ -140,7 +140,7 @@ fn main() {
     //             *a}, &mut slice);
     let l1 = create_list_from(100.0);
     let l4 = l1.fmap(|x| x*x);
-    let l5 = List::new("hi\n", 100);
+    //let l5 = List::new("hi\n", 100);
     //let l6 = l5.fmap(|x| x.to_string());
     //panic!("Help");
     //der inlined das
@@ -159,7 +159,7 @@ fn main() {
              
                 
     //println!("{}", l4);
-    println!("{}", l5);
+    //println!("{}", l5);
     //println!("{:?}", s);
     //println!("{:?}", slice);
         
