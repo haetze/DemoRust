@@ -1,7 +1,7 @@
 use std::thread;
 
 fn main() {
-    let n = 100;
+    let n = 10;
     let mut handler_vec = Vec::new();
     for i in 0..n{
         handler_vec.push(thread::spawn(move || {

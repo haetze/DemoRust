@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_variables)]
 use std::fmt;
 
 pub trait OuterMap<A, B> {
@@ -63,7 +64,7 @@ impl<A,B> Functor<A,B> for List<A> {
     fn fmap(&self, f:fn(&A) -> B) -> List<B>{
         match *self{
             List::Nil => List::Nil,
-            List::Cons(ref h, ref t) => List::Cons(f(&h), Box::new(t.fmap(f)))
+            List::Cons(ref h, ref t) => {List::Cons(f(&h), Box::new(t.fmap(f)))
         }
     }
 }
