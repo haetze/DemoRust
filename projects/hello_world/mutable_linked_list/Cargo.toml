@@ -1,0 +1,6 @@
+[package]
+name = "mutable_linked_list"
+version = "0.1.0"
+authors = ["haetze <richy.sting@gmail.com>"]
+
+[dependencies]
