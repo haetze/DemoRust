@@ -11,7 +11,7 @@ impl<A: fmt::Display> fmt::Display for List<A>{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self{
             List::Nil => write!(f, "Nil"),
-            List::Cons(ref h, ref t) => write!(f, "({} {})", h, t)
+            List::Cons(ref h, ref t) => write!(f, "({} {}\n)", h, t)
         }        
     }
 }
@@ -58,7 +58,7 @@ impl<A,B> ImmutableMap<A,B> for List<A>{
 fn main() {
     let mut l = list_create(10);
     l.mutable_map(|x| 2*x);
-    let l2 = l.immutable_map(|x| (x+1).to_string());
-    println!("{}", l);
+    let l2 = l.immutable_map(|x| list_create(*x));
+    //println!("{}", l);
     println!("{}", l2);
 }
