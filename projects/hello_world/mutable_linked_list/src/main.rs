@@ -3,6 +3,7 @@
 
 use std::fmt;
 use std::mem;
+use std::vec::IntoIter;
 
 enum List<A> {
     Nil,
@@ -56,6 +57,7 @@ impl<A,B> ImmutableMap<A,B> for List<A>{
     }
 }
 
+
 impl<A> List<A>{
     fn new() -> List<A>{
         List::Nil
@@ -70,20 +72,39 @@ impl<A> List<A>{
             List::Cons(h, t) => *t,
         }
     }
-    
+
+    fn into_vec(self) -> Vec<A>{
+        let mut vec: Vec<A> = Vec::new();
+        match self {
+            List::Nil => (),
+            List::Cons(h, t) => {
+                vec.push(*h);
+                let v = t.into_vec();
+                vec.extend(v);
+            },
+        }
+        return vec;
+    }
+
+    fn into_iter(self) -> IntoIter<A>{
+        self.into_vec().into_iter()
+    }
 }
+
             
 
 fn main() {
-    let l1 : List<f32> = List::new();
-    let l2 = l1.add(2.0);
-    let mut l3 = l2.add(4.0);
-    l3.mutable_map(|x| x.sqrt());
-    println!("{}", l3);
+    let mut l : List<i32> = List::new();
+    for i in 0..11 {
+        l = l.add(i);
+    }      
+    //println!("{}", l);
+    let v : Vec<i32> = l.into_iter().map(|x| {println!("From map, value: {}", x);
+                                              x*x}).filter(|x| {println!("From filter, value: {}", x);
+                                                                *x < 50}).collect();
+    println!("{:?}", v);
     //let empty : List<i32> = List::new();
     //empty.remove_head();
-    let l4 = l3.remove_head();
-    println!("{}", l4);
     //println!("{}", l2);
     /*let mut a = 2;
     loop{
