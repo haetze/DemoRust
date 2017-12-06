@@ -3,18 +3,10 @@ struct Product<A, B> {
     y: B,
 }
 
-struct Product2<'a, A:'a, B:'a>{
-    x: &'a mut A,
-    y: &'a mut B,
-}
-
 impl<A, B> Product<A,B> {
     fn map(&self, f:fn(&A) -> A, g:fn(&B) -> B) -> Product<A,B> {
         Product{x:f(&self.x), y:g(&self.y)}
     }
-}
-
-impl<A,B> Product<A,B> {
     fn set_x(&mut self, a: A){
         self.x = a
     }
@@ -46,8 +38,9 @@ fn main() {
     p1.map_y(|y| y+2);
     println!("Zweites Parameter gemapped: ({},{})", p1.x, p1.y);
     //println!("({},{})", p1.x, p1.y);
+    let p2 = p1.map(|x| x*x, |y| 3*y);
+    println!("Beide Parameter gemapped (immutable, p1): ({},{})", p1.x, p1.y);
+    println!("Beide Parameter gemapped (immutable, p2): ({},{})", p2.x, p2.y);
     p1.mut_map(|x| x*x, |y| 3*y);
-    println!("Beide Parameter gemapped: ({},{})", p1.x, p1.y);
-    //let p2 = p1.map(|x| 2*x, |y| y*y);
-    //println!("({},{})", p2.x, p2.y);
+    println!("Beide Parameter gemapped(mutable): ({},{})", p1.x, p1.y);
 }
