@@ -1,0 +1,8 @@
+[package]
+name = "insertion_sort"
+version = "0.1.0"
+authors = ["haetze <richy.sting@gmail.com>"]
+
+[dependencies]
+rand = "0.3"
+colored = "1.6"
