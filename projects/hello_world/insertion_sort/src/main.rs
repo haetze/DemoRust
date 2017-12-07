@@ -1,8 +1,11 @@
+#![allow(unused_must_use)]
+
 extern crate colored;
 extern crate rand;
 
 use rand::Rng;
 use colored::*;
+use std::thread;
 
 trait Sort<A:PartialOrd> {
     fn insertion_sort_mut(&mut self);
@@ -29,41 +32,50 @@ fn random_vec(n: i32, limit:i32) -> Vec<i32>{
 
 
 fn main() {
-    let i = 50000;
-    println!("\n\n\n+++++++++++++++\t Insertion Sort\t+++++++++++++++\n");
-    {
+    let i = 5000;
+
+    let handle_insertion_sort = thread::spawn(move || {
         let mut v1 = random_vec(i, i);
         v1.reverse();
         {
             let v2 = v1.insertion_sort();
-            v2.check_sorted_output();
+            assert!(v2.is_sorted());
         
         }
         v1.insertion_sort_mut();
-        v1.check_sorted_output();
-    }
-    println!("\n\n\n+++++++++++++++\t Quick Sort\t+++++++++++++++\n");
-    {
+        assert!(v1.is_sorted());
+
+        println!("{}", "Insertion Sort Success".green().bold());
+    });
+
+    let handle_quick_sort = thread::spawn(move || {
         let mut v1 = random_vec(i, i);
         v1.reverse();
         {
             let v2 = v1.quick_sort();
-            v2.check_sorted_output();
+            assert!(v2.is_sorted());
         }
         v1.quick_sort_mut();
-        v1.check_sorted_output();
-    }
-    println!("\n\n\n+++++++++++++++\t Selection Sort\t+++++++++++++++\n");
-    {
+        assert!(v1.is_sorted());
+        println!("{}", "Quick Sort Success".green().bold());
+    });
+
+    let handle_selection_sort = thread::spawn(move || {
         let mut v1 : Vec<i32>= random_vec(i, i);
         v1.reverse();
         {
             let v2 = v1.selection_sort();
-            v2.check_sorted_output();
+            assert!(v2.is_sorted());
         }
         v1.selection_sort_mut();
-        v1.check_sorted_output();
-    }
+        assert!(v1.is_sorted());
+        println!("{}", "Selection Sort Success".green().bold());
+    });
+
+
+    handle_quick_sort.join();
+    handle_selection_sort.join();
+    handle_insertion_sort.join();
     
 }
 
