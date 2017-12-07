@@ -93,8 +93,26 @@ fn main() {
     let Color(red,_,_) = black;
 
     println!("Red part of black {}", red);
+
+
+    let mut f : Vec<i32> = (0..100).collect();
+
+    println!("{:?}", f);
+
+    ff(&mut f[..50]);
+
+    println!("{:?}", f);
+        
+        
+        
 }
 
+
+fn ff(i:&mut [i32]){
+    for n in 0..i.len(){
+        i[n] = 0;
+    }
+}
 //function declaration
 fn print_number(x :i32){
     println!("{}", x);

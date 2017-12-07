@@ -27,7 +27,7 @@ fn random_vec(i: i32) -> Vec<i32>{
 
 
 fn main() {
-    let i = 3;
+    let i = 300;
     /*println!("\n\n\n+++++++++++++++\t Insertion Sort\t+++++++++++++++\n");
     {
         let mut v1 = random_vec(i);
@@ -47,15 +47,15 @@ fn main() {
     {
         let mut v1 = random_vec(i);
         v1.reverse();
-        println!("Original Vector: {:?}\n", v1);
-        {
+        //println!("Original Vector: {:?}\n", v1);
+        /*{
             let v2 = v1.quick_sort();
             println!("Sortet Vector(copy, quick sort):{:?}\n", v2);
             v2.check_sorted_output();
             println!("Original Vector:{:?}\n", v1);
-        }
+        }*/
         v1.quick_sort_mut();
-        println!("Original Vector (sorted, quick sort):{:?}\n", v1);
+        //println!("Original Vector (sorted, quick sort):{:?}\n", v1);
         v1.check_sorted_output();
     }
     /*println!("\n\n\n+++++++++++++++\t Selection Sort\t+++++++++++++++\n");
@@ -136,8 +136,8 @@ impl<A:PartialOrd> Sort<A> for [A]{
                     pivot = pivot + 1;
                 }                
             }
-            self[..pivot].quick_sort();
-            self[pivot+1..].quick_sort();
+            self[..pivot].quick_sort_mut();
+            self[pivot+1..].quick_sort_mut();
         }
        
     }
@@ -147,7 +147,7 @@ impl<A:PartialOrd> Sort<A> for [A]{
         for n in self{
             v.push(n);
         }
-        v.insertion_sort_mut();
+        v.quick_sort_mut();
         return v;
     }
 
