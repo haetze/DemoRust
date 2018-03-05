@@ -1,0 +1,9 @@
+[package]
+name = "futures"
+version = "0.1.0"
+authors = ["haetze"]
+
+[dependencies]
+futures-await = "0.1"
+
+

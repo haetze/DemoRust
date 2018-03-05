@@ -1,0 +1,1 @@
+{"rustc":15120858573068759328,"features":"[\"default\", \"futures-await-quote\", \"parsing\", \"printing\"]","target":14358566542754771666,"profile":4513376542218014594,"path":2946576997518652387,"deps":[["futures-await-quote v0.4.0",10206048794442069050],["proc-macro2 v0.1.10",2844247167363789019]],"local":[{"Precalculated":"0.12.0"}],"rustflags":[]}
