@@ -1,0 +1,75 @@
+#![feature(proc_macro, conservative_impl_trait, generators)]
+
+extern crate futures_await as futures;
+extern crate tokio_core;
+
+use std::io;
+use futures::prelude::*;
+use tokio_core::reactor::Core;
+
+
+#[async]
+fn create_future(x :i32) -> Result<i32, i32> {
+    Ok(x)
+}
+
+
+
+fn main() {
+    let mut core = Core::new().unwrap();
+    let handle = core.handle();
+    let future_1 = create_future(1234);
+    let future_2 = create_future(5678);
+    let f_1 = future_1.map(|x| {
+        println!("Future 1, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 1, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 1, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 1, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 1, x = {}", x);
+        x + 1
+    });
+    let f_2 = future_2.map(|x| {
+        println!("Future 2, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 2, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 2, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 2, x = {}", x);
+        x + 1
+    }).map(|x| {
+        println!("Future 2, x = {}", x);
+        x + 1
+    });
+    
+
+    let start = async_block! {
+        handle.spawn(f_1.then(|result| {
+            println!("{:?}", result);
+            Ok(())
+        }));
+        handle.spawn(f_2.then(|result| {
+            println!("{:?}", result);
+            Ok(())
+        }));
+ 
+        Ok::<(), io::Error>(())
+    };
+    
+    core.run(start).unwrap();
+    core.turn(None);
+   
+    println!("Main");
+
+}

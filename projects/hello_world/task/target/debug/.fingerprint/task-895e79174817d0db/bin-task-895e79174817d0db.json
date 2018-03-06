@@ -1,0 +1,1 @@
+{"rustc":12856826667634598855,"features":"[]","target":2082646338558714786,"profile":7118654380843525406,"path":1036222786711178230,"deps":[["futures-await v0.1.0",18157990238801606813],["tokio-core v0.1.12",6262457653084871341]],"local":[{"MtimeBased":[[1520334057,835978000],".fingerprint/task-895e79174817d0db/dep-bin-task-895e79174817d0db"]}],"rustflags":[]}

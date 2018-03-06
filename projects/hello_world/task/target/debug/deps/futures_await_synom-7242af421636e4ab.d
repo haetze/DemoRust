@@ -1,0 +1,10 @@
+/usr/home/haetze/Documents/Code/rust/projects/hello_world/task/target/debug/deps/libfutures_await_synom-7242af421636e4ab.rlib: /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/lib.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/helper.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/delimited.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/tokens.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/span.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/cursor.rs
+
+/usr/home/haetze/Documents/Code/rust/projects/hello_world/task/target/debug/deps/futures_await_synom-7242af421636e4ab.d: /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/lib.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/helper.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/delimited.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/tokens.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/span.rs /home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/cursor.rs
+
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/lib.rs:
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/helper.rs:
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/delimited.rs:
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/tokens.rs:
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/span.rs:
+/home/haetze/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-await-synom-0.12.0/src/cursor.rs:

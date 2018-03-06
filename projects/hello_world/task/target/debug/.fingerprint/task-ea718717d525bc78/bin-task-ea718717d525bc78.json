@@ -1,0 +1,1 @@
+{"rustc":12856826667634598855,"features":"[]","target":2082646338558714786,"profile":7118654380843525406,"path":1036222786711178230,"deps":[["futures v0.1.18",433267446968499495],["futures-await v0.1.0",18157990238801606813]],"local":[{"MtimeBased":[[1520336913,160900000],".fingerprint/task-ea718717d525bc78/dep-bin-task-ea718717d525bc78"]}],"rustflags":[]}
