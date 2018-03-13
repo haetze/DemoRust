@@ -1,0 +1,1 @@
+{"rustc":15120858573068759328,"features":"[]","target":16887268990697202311,"profile":4513376542218014594,"path":9744008545942538658,"deps":[["futures v0.1.18",7035301126532866072],["futures-await-async-macro v0.1.1",18353940330723343618],["futures-await-await-macro v0.1.0",12676086656872449597]],"local":[{"Precalculated":"0.1.0"}],"rustflags":[]}

@@ -1,1 +1,0 @@
-/Users/haetze/Documents/Code/rust/DemoRust/projects/hello_world/syntax_semantics/target/debug/syntax_semantics: /Users/haetze/Documents/Code/rust/DemoRust/projects/hello_world/syntax_semantics/src/main.rs
