@@ -1,0 +1,13 @@
+/home/chronos/user/Documents/DemoRust/projects/coreTest/target/debug/deps/libnet2-8f0c1f9c22e45127.rlib: /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/lib.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/tcp.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/udp.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/socket.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/ext.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/utils.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/mod.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/impls.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/unix.rs
+
+/home/chronos/user/Documents/DemoRust/projects/coreTest/target/debug/deps/net2-8f0c1f9c22e45127.d: /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/lib.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/tcp.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/udp.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/socket.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/ext.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/utils.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/mod.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/impls.rs /home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/unix.rs
+
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/lib.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/tcp.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/udp.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/socket.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/ext.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/utils.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/mod.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/sys/unix/impls.rs:
+/home/chronos/user/.cargo/registry/src/github.com-1ecc6299db9ec823/net2-0.2.32/src/unix.rs:

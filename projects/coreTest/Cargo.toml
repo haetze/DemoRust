@@ -1,0 +1,10 @@
+[package]
+name = "core_test"
+version = "0.1.0"
+authors = ["Richard Stewing <richy.sting@gmail.com>"]
+
+[dependencies]
+tokio-core = "0.1"
+tokio-io   = "0.1"
+futures-await = "0.1"
+num_cpus = "0.1"
