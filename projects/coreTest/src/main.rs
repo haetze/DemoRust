@@ -7,15 +7,19 @@ extern crate tokio_io;
 use std::env;
 use std::net::{self, SocketAddr};
 use std::thread;
+use std::io::BufReader;
+use std::io::Error;
 
 
 use futures::Future;
+use futures::future::{self, ok, loop_fn, Loop, FutureResult};
 use futures::stream::Stream;
 use futures::sync::mpsc;
 use tokio_io::AsyncRead;
-use tokio_io::io::copy;
+use tokio_io::io;
 use tokio_core::net::TcpStream;
 use tokio_core::reactor::Core;
+
 
 fn main(){
     let addr = env::args().nth(1).unwrap_or("127.0.0.1:8080".to_string());
@@ -57,22 +61,27 @@ fn worker(rx: mpsc::UnboundedReceiver<net::TcpStream>) {
 
         let socket = TcpStream::from_stream(socket, &handle)
             .expect("failed to associate TCP stream");
-        let addr = socket.peer_addr()
-            .expect("failed to get remote address");
-
-
+        
         let (reader, writer) = socket.split();
-        let amt = copy(reader, writer);
-        let msg = amt.then(move |result| {
-            match result {
-                Ok((amt, _, _)) =>
-                    println!("wrote {} bytes to {}", amt, addr),
-                Err(e) => println!("error on {}: {}", addr, e),
+        let reader = BufReader::new(reader);
+        let f = io::read_until(reader, b'\n', Vec::new())
+                .and_then(|(_r,b)| io::write_all(writer, b))
+                .then(|_| {
+                    println!("Copy done");
+                    Ok(())
+                });
+       
+        /*
+        let a : i32 = 0;
+        let l : LoopFn<i32, Error>= loop_fn(a, |acc| {
+            if acc < 100 {
+                Ok(Loop::Continue(acc+1))
+            }else{
+                Ok(Loop::Break(100))
             }
-
-            Ok(())
         });
-        handle.spawn(msg);
+        */
+        handle.spawn(f);
 
         Ok(())
     });
