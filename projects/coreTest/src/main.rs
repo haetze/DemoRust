@@ -8,11 +8,10 @@ use std::env;
 use std::net::{self, SocketAddr};
 use std::thread;
 use std::io::BufReader;
-use std::io::Error;
 
 
 use futures::Future;
-use futures::future::{self, ok, loop_fn, Loop, FutureResult};
+use futures::future::{ok, loop_fn, Loop, FutureResult};
 use futures::stream::Stream;
 use futures::sync::mpsc;
 use tokio_io::AsyncRead;
@@ -64,23 +63,26 @@ fn worker(rx: mpsc::UnboundedReceiver<net::TcpStream>) {
         
         let (reader, writer) = socket.split();
         let reader = BufReader::new(reader);
-        let f = io::read_until(reader, b'\n', Vec::new())
-                .and_then(|(_r,b)| io::write_all(writer, b))
-                .then(|_| {
-                    println!("Copy done");
-                    Ok(())
-                });
+
+        let f = loop_fn((reader, writer), |(r,w)| {
+            io::read_until(r, b'\n', Vec::new())
+                .and_then(|(r,b)| {
+                    let (w,b) = io::write_all(w, b).wait().unwrap();
+                    let s = String::from_utf8(b).unwrap();
+                    let s = s.trim_matches('\n');
+                    println!("Read {} from reader, writing to writer!", s); 
+                    ok((r,w))
+                })
+                .then(|result| {
+                    match result {
+                        Ok((r,w)) => Ok(Loop::Continue((r,w))),
+                        _         => Ok(Loop::Break("Stop Loop")),
+                    }
+                })
+                
+        }).and_then(|_| Ok(()));
+
        
-        /*
-        let a : i32 = 0;
-        let l : LoopFn<i32, Error>= loop_fn(a, |acc| {
-            if acc < 100 {
-                Ok(Loop::Continue(acc+1))
-            }else{
-                Ok(Loop::Break(100))
-            }
-        });
-        */
         handle.spawn(f);
 
         Ok(())
