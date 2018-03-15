@@ -7,11 +7,11 @@ extern crate tokio_io;
 use std::env;
 use std::net::{self, SocketAddr};
 use std::thread;
-use std::io::BufReader;
+use std::io::{Error, BufReader, ErrorKind};
 
 
 use futures::Future;
-use futures::future::{ok, loop_fn, Loop, FutureResult};
+use futures::future::{ok, err, loop_fn, Loop};
 use futures::stream::Stream;
 use futures::sync::mpsc;
 use tokio_io::AsyncRead;
@@ -67,16 +67,24 @@ fn worker(rx: mpsc::UnboundedReceiver<net::TcpStream>) {
         let f = loop_fn((reader, writer), |(r,w)| {
             io::read_until(r, b'\n', Vec::new())
                 .and_then(|(r,b)| {
-                    let (w,b) = io::write_all(w, b).wait().unwrap();
-                    let s = String::from_utf8(b).unwrap();
-                    let s = s.trim_matches('\n');
-                    println!("Read {} from reader, writing to writer!", s); 
-                    ok((r,w))
+                    if b.len() > 0 {
+                        match io::write_all(w, b).wait() {
+                            Ok((w,b)) => {
+                                let s = String::from_utf8(b).unwrap();
+                                let s = s.trim_matches('\n');
+                                println!("Read {} from reader, writing to writer!", s); 
+                                ok((r,w))
+                            },
+                            _         => err(Error::new(ErrorKind::Other, "Error")),
+                        }
+                    }else{
+                        err(Error::new(ErrorKind::Other, "Error"))
+                    }
                 })
                 .then(|result| {
                     match result {
-                        Ok((r,w)) => Ok(Loop::Continue((r,w))),
-                        _         => Ok(Loop::Break("Stop Loop")),
+                        Ok((r,w))         => Ok(Loop::Continue((r,w))),
+                        Err(e)        => Ok(Loop::Break("End of Loop")),
                     }
                 })
                 
