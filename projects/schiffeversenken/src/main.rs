@@ -37,23 +37,24 @@ impl Future for Server {
                         }else{
                             let ip_string = format!("{}", peer.ip());
                             self.playerlist.add(&words[1].trim().to_string(), &ip_string);
-                            try_nb!(self.socket.send_to(b"200\n" , &peer))
+                            try_nb!(self.socket.send_to(b"200" , &peer))
                         }
                     },
                     "request_list" => {
-                        try_nb!(self.socket.send_to(b"201 " , &peer));
+                        let mut s = format!("201 {}", self.playerlist.list.len());
+                        try_nb!(self.socket.send_to(s.as_bytes() , &peer));
                         for player in &self.playerlist.list {
-                            let s = format!("{}\n", player.name);
+                            let s = format!("{}", player.name);
                             try_nb!(self.socket.send_to(s.as_bytes() , &peer));
                         }
-                            try_nb!(self.socket.send_to(b"\n" , &peer))
+                        try_nb!(self.socket.send_to(b"\n" , &peer))
                     },
                     "request_player" => {
                         match self.playerlist.find(&words[1].trim().to_string()) {
                             None =>  try_nb!(self.socket.send_to(b"404" , &peer)),
                             Some(player) => {
-                                try_nb!(self.socket.send_to(b"202 " , &peer));
-                                let s = format!("{}", player.ip);
+                                let s = format!("202 {}", player.ip);
+                                println!("{}", s);
                                 try_nb!(self.socket.send_to(s.as_bytes() , &peer))
                             },
                         }
