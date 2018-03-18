@@ -1,0 +1,1 @@
+/usr/home/haetze/Documents/Code/DemoRust/projects/ship_terminator_client/target/debug/ship_terminator_client: /usr/home/haetze/Documents/Code/DemoRust/projects/ship_terminator_client/src/main.rs /usr/home/haetze/Documents/Code/DemoRust/projects/ship_terminator_client/src/data.rs

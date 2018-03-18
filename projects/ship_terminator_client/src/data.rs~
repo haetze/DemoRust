@@ -1,0 +1,20 @@
+
+struct Player {
+    name: String,
+    ip: String,
+}
+
+
+impl Player {
+    pub fn new(name: String, ip: String){
+        Player {
+            name: name,
+            ip: ip,
+        }
+    }
+}
+
+
+struct PlayerList {
+    liste: Vec<Player>,
+}
