@@ -1,1 +1,1 @@
-/Users/haetze/Documents/DemoRust/projects/biparit/target/debug/biparit.dSYM: /Users/haetze/Documents/DemoRust/projects/biparit/src/main.rs
+/home/stewin00/Dokumente/DemoRust/projects/biparit/target/debug/biparit: /home/stewin00/Dokumente/DemoRust/projects/biparit/src/main.rs

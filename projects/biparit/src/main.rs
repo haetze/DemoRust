@@ -1,10 +1,8 @@
 
-
-
 fn main() {
 
     let nodes :Vec<i32>       = (0..6).collect();
-    let edges :Vec<(i32,i32)> = vec![(0,3),(1,3),(1,4),(1,5),(2,4)];
+    let edges :Vec<(i32,i32)> = vec![(1,0),(0,3),(1,3),(1,4),(1,5),(2,4)];
 
     let (w,v) = find_biparit(&nodes, &edges).unwrap();    
         
@@ -14,76 +12,70 @@ fn main() {
 
 
 fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, Vec<A>)>{
-
-    let mut w :Vec<A> = Vec::new();
-    let mut v :Vec<A> = Vec::new();
+    use std::collections::VecDeque;
     
-    for &node in nodes {
-        if find(&node, &w) && find(&node, &v) {
-            println!("Konnte keine Teilung finden");
-            return None::<(Vec<A>, Vec<A>)>;
-        }else if find(&node, &w) {
-            for &(a, b) in edges {
-                if node == a {
-                    push_once(&mut v,b);
-                }else if node == b {
-                    push_once(&mut v,a);
-                }
-            }
-        }else if find(&node, &v) {
-            for &(a, b) in edges{
-                if node == a {
-                    push_once(&mut w,b);
-                }else if node == b {
-                    push_once(&mut w,a);
-                }
-            }
+    let mut queue: VecDeque<(i32,A)> = VecDeque::new();
+    let head;
+    let mut w: Vec<A> = Vec::new();
+    let mut u: Vec<A> = Vec::new();
+    let mut checked: Vec<A> = Vec::new();
+    match nodes.first() {
+        None => {
+            return None::<(Vec<A>, Vec<A>)>
+        },
+        Some(node) => {
+            head = *node;
+        },
+    };
 
-        }else{
-            let mut choice = 0;
-            for &(a, b) in edges{
-                if node == a && find(&b, &w) {
-                    choice = 2;
-                    break;
-                }
-                if node == a && find(&b, &v) {
-                    choice = 1;
-                    break;
-                }
-                if node == b && find(&a, &w) {
-                    choice = 2;
-                    break;
-                }
-                if node == b && find(&a, &v) {
-                    choice = 1;
-                    break;
-                }
+    queue.push_back((0,head));
+    
+    while let Some((in_var, node)) = queue.pop_front() {
+        if in_var ==  0 && !find(&node, &checked) {
+            push_once(&mut w, node);
+            push_once(&mut checked, node);
+            for adjecent in find_all(node, &edges) {
+                queue.push_back((1,adjecent));
             }
-            if choice == 1 || choice == 0 {
-                w.push(node);
-                for &(a, b) in edges{
-                    if node == a {
-                        push_once(&mut v,b);
-                    }else if node == b {
-                        push_once(&mut v,a);
-                    }
-                }
+        } else if in_var ==  1 && !find(&node, &checked){
+            push_once(&mut u, node);
+            push_once(&mut checked, node);
+            for adjecent in find_all(node, &edges) {
+                queue.push_back((0,adjecent));
             }
-            if choice == 2 {
-                v.push(node);
-                for &(a, b) in edges{
-                    if node == a {
-                        push_once(&mut w,b);
-                    }else if node == b {
-                        push_once(&mut w,a);
-                    }
-                }
-            }
-                
+        }
+        
+    }
+
+    for n in &w {
+        if find(n, &u){
+            return None::<(Vec<A>, Vec<A>)>;
         }
     }
 
-    Some((w,v))
+
+    
+            
+    
+    Some((w, u))
+
+    
+    
+}
+
+fn find_all<A: Eq + Copy>(i: A, vec: &[(A,A)]) -> Vec<A> {
+    let mut v = Vec::new();
+
+    for &(a,b) in vec {
+        if a == i {
+            push_once(&mut v, b);
+        }
+        if b == i {
+            push_once(&mut v, a);
+        }
+    }
+
+    v
 
 }
 
