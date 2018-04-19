@@ -47,25 +47,10 @@ fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, V
         
     }
 
-    for &n in &w {
-        for m in find_all(n, &edges){
-            if find(&m, &w){
-                return None;
-            }
-        }
+    if ! check(&w, &u, &edges){
+        return None;
     }
-
-    for &n in &u {
-        for m in find_all(n, &edges){
-            if find(&m, &u){
-                return None;
-            }
-        }
-    }
-    
-    
-            
-    
+        
     Some((w, u))
 
     
@@ -86,6 +71,26 @@ fn find_all<A: Eq + Copy>(i: A, vec: &[(A,A)]) -> Vec<A> {
 
     v
 
+}
+
+fn check<A: Eq + Copy>(w: &[A], u: &[A], edges: &[(A,A)]) -> bool{
+    for &n in w {
+        for m in find_all(n, edges){
+            if find(&m, w){
+                return false;
+            }
+        }
+    }
+
+    for &n in u {
+        for m in find_all(n, edges){
+            if find(&m, u){
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 fn push_once<A:Eq + Copy>(vec: &mut Vec<A>, i: A){
