@@ -2,7 +2,7 @@
 fn main() {
 
     let nodes :Vec<i32>       = (0..6).collect();
-    let edges :Vec<(i32,i32)> = vec![(1,0),(0,3),(1,3),(1,4),(1,5),(2,4)];
+    let edges :Vec<(i32,i32)> = vec![(0,3),(1,3),(1,4),(1,5),(2,4)];
 
     let (w,v) = find_biparit(&nodes, &edges).unwrap();    
         
@@ -47,13 +47,22 @@ fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, V
         
     }
 
-    for n in &w {
-        if find(n, &u){
-            return None::<(Vec<A>, Vec<A>)>;
+    for &n in &w {
+        for m in find_all(n, &edges){
+            if find(&m, &w){
+                return None;
+            }
         }
     }
 
-
+    for &n in &u {
+        for m in find_all(n, &edges){
+            if find(&m, &u){
+                return None;
+            }
+        }
+    }
+    
     
             
     
