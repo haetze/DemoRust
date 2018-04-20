@@ -6,10 +6,15 @@ fn main() {
     let nodes :Vec<i32>       = (0..6).collect();
     let edges :Vec<(i32,i32)> = vec![(0,3),(1,3),(1,4),(1,5),(2,4)];
 
-    let (w,v) = find_biparit(&nodes, &edges).unwrap();    
-        
-    println!("{:?}", w);
-    println!("{:?}", v);
+    match find_biparit(&nodes, &edges) {
+        Some((w,v)) => {
+            println!("{:?}", w);
+            println!("{:?}", v);
+        },
+        None => {
+            println!("No sets found");
+        },
+    }
 }
 
 fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, Vec<A>)>{
