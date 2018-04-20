@@ -8,7 +8,7 @@ fn main() {
     let edges :HashSet<_> = vec![('a','d'),('b','d'),('b','e'),('b','f'),('c','e')].into_iter().collect();
 
 
-    match find_biparit(&nodes.into_iter().collect::<Vec<_>>(), &edges.into_iter().collect::<Vec<_>>()) {
+    match find_biparit(&nodes, &edges) {
         Some((w,v)) => {
             println!("{:?}", w);
             println!("{:?}", v);
@@ -17,17 +17,24 @@ fn main() {
             println!("No sets found");
         },
     }
+
+    println!("Input: {:?}, {:?}", nodes, edges);
 }
 
-fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(HashSet<A>, HashSet<A>)>{
+fn find_biparit<I, J, A: Eq + Copy + Hash>(nodes: &I, edges: &J) -> Option<(HashSet<A>, HashSet<A>)>
+    where
+    I: IntoIterator<Item = A> + Clone,
+    J: IntoIterator<Item = (A,A)> + Clone,
+{
     use std::collections::VecDeque;
-    
+    let nodes = nodes.clone().into_iter().collect::<Vec<_>>();
+    let edges = edges.clone().into_iter().collect::<Vec<_>>();
     let mut queue: VecDeque<(i32,A)> = VecDeque::new();
     let head;
     let mut w: HashSet<A> = HashSet::new();
     let mut u: HashSet<A> = HashSet::new();
     let mut checked: HashSet<A> = HashSet::new();
-    let mut map = create_map(edges);
+    let mut map = create_map(&edges);
     match nodes.first() {
         None => {
             return None;
@@ -71,9 +78,13 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ha
 }
 
 
-fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, HashSet<A>> {
+fn create_map<I, A: Eq + Copy + Hash>(edges: &I) -> HashMap<A, HashSet<A>>
+    where
+    I: IntoIterator<Item = (A,A)> + Clone,
+{
+    let edges = edges.clone().into_iter().collect::<Vec<_>>();
     let mut map = HashMap::new();
-    for &(a,b) in edges {
+    for (a,b) in edges {
         match map.remove(&a) {
             None => {
                 let mut v: HashSet<A> = HashSet::new();
