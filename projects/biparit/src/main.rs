@@ -4,10 +4,11 @@ use std::hash::Hash;
 
 fn main() {
 
-    let nodes :Vec<char>       = vec!['a', 'b','c','d','e','f'];
-    let edges :Vec<(char,char)> = vec![('a','d'),('b','d'),('b','e'),('b','f'),('c','e')];
+    let nodes :HashSet<_>       = vec!['a', 'b','c','d','e','f'].into_iter().collect();
+    let edges :HashSet<_> = vec![('a','d'),('b','d'),('b','e'),('b','f'),('c','e')].into_iter().collect();
 
-    match find_biparit(&nodes, &edges) {
+
+    match find_biparit(&nodes.into_iter().collect::<Vec<_>>(), &edges.into_iter().collect::<Vec<_>>()) {
         Some((w,v)) => {
             println!("{:?}", w);
             println!("{:?}", v);
