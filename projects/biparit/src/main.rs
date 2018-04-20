@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::hash::Hash;
 
 fn main() {
@@ -17,14 +18,14 @@ fn main() {
     }
 }
 
-fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, Vec<A>)>{
+fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(HashSet<A>, HashSet<A>)>{
     use std::collections::VecDeque;
     
     let mut queue: VecDeque<(i32,A)> = VecDeque::new();
     let head;
-    let mut w: Vec<A> = Vec::new();
-    let mut u: Vec<A> = Vec::new();
-    let mut checked: Vec<A> = Vec::new();
+    let mut w: HashSet<A> = HashSet::new();
+    let mut u: HashSet<A> = HashSet::new();
+    let mut checked: HashSet<A> = HashSet::new();
     let mut map = create_map(edges);
     match nodes.first() {
         None => {
@@ -42,15 +43,15 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ve
             None => Vec::new(),
             Some(v) => v,
         };    
-        if in_var ==  0 && !find(&node, &checked) {
-            push_once(&mut w, node);
-            push_once(&mut checked, node);
+        if in_var ==  0 && !checked.contains(&node) {
+            w.insert(node);
+            checked.insert(node);
             for &adjecent in &all {
                 queue.push_back((1,adjecent));
             }
-        } else if in_var ==  1 && !find(&node, &checked){
-            push_once(&mut u, node);
-            push_once(&mut checked, node);
+        } else if in_var ==  1 && !checked.contains(&node){
+            u.insert(node);
+            checked.insert(node);
             for &adjecent in &all {
                 queue.push_back((0,adjecent));
             }
@@ -103,14 +104,14 @@ fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
 
 }
 
-fn check<A: Eq + Copy + Hash>(w: &[A], u: &[A], map: &mut HashMap<A, Vec<A>>) -> bool{
+fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<A, Vec<A>>) -> bool{
     for &n in w {
         let all = match map.remove(&n) {
             None => Vec::new(),
             Some(v) => v,
         };
         for m in all{
-            if find(&m, w){
+            if w.contains(&m) {
                 return false;
             }
         }
@@ -122,7 +123,7 @@ fn check<A: Eq + Copy + Hash>(w: &[A], u: &[A], map: &mut HashMap<A, Vec<A>>) ->
             Some(v) => v,
         };
         for m in all{
-            if find(&m, u){
+            if u.contains(&m){
                 return false;
             }
         }
