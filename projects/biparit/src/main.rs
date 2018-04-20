@@ -40,7 +40,7 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ha
     
     while let Some((in_var, node)) = queue.pop_front() {
         let all = match map.remove(&node) {
-            None => Vec::new(),
+            None => HashSet::new(),
             Some(v) => v,
         };    
         if in_var ==  0 && !checked.contains(&node) {
@@ -56,9 +56,7 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ha
                 queue.push_back((0,adjecent));
             }
         } 
-        map.insert(node, all);
-      
-        
+        map.insert(node, all);        
     }
 
     if ! check(&w, &u, &mut map){
@@ -72,28 +70,28 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ha
 }
 
 
-fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
+fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, HashSet<A>> {
     let mut map = HashMap::new();
     for &(a,b) in edges {
         match map.remove(&a) {
             None => {
-                let mut v: Vec<A> = Vec::new();
-                push_once(&mut v, b);
+                let mut v: HashSet<A> = HashSet::new();
+                v.insert(b);
                 map.insert(a, v);
             },
             Some(mut v) => {
-                push_once(&mut v, b);
+                v.insert(b);
                 map.insert(a, v);
             }
         }
         match map.remove(&b) {
             None => {
-                let mut v: Vec<A> = Vec::new();
-                push_once(&mut v, a);
+                let mut v: HashSet<A> = HashSet::new();
+                v.insert(a);
                 map.insert(b, v);
             },
             Some(mut v) => {
-                push_once(&mut v, a);
+                v.insert(a);
                 map.insert(b, v);
             }
         }
@@ -104,10 +102,10 @@ fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
 
 }
 
-fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<A, Vec<A>>) -> bool{
+fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<A, HashSet<A>>) -> bool{
     for &n in w {
         let all = match map.remove(&n) {
-            None => Vec::new(),
+            None => HashSet::new(),
             Some(v) => v,
         };
         for m in all{
@@ -119,7 +117,7 @@ fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<
 
     for &n in u {
         let all = match map.remove(&n) {
-            None => Vec::new(),
+            None => HashSet::new(),
             Some(v) => v,
         };
         for m in all{
@@ -132,18 +130,3 @@ fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<
     return true;
 }
 
-fn push_once<A:Eq + Copy>(vec: &mut Vec<A>, i: A){
-    if ! find(&i, &vec){
-        vec.push(i);
-    }
-}
-
-
-fn find<A: Eq>(i: &A, vec: &[A]) -> bool {
-    for n in vec {
-        if n == i {
-            return true;
-        }
-    }
-    return false;
-}
