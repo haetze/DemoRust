@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::hash::Hash;
 
 fn main() {
 
@@ -10,8 +12,7 @@ fn main() {
     println!("{:?}", v);
 }
 
-
-fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, Vec<A>)>{
+fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, Vec<A>)>{
     use std::collections::VecDeque;
     
     let mut queue: VecDeque<(i32,A)> = VecDeque::new();
@@ -19,9 +20,10 @@ fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, V
     let mut w: Vec<A> = Vec::new();
     let mut u: Vec<A> = Vec::new();
     let mut checked: Vec<A> = Vec::new();
+    let mut map = create_linked_list(edges);
     match nodes.first() {
         None => {
-            return None::<(Vec<A>, Vec<A>)>
+            return None;
         },
         Some(node) => {
             head = *node;
@@ -31,23 +33,29 @@ fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, V
     queue.push_back((0,head));
     
     while let Some((in_var, node)) = queue.pop_front() {
+        let all = match map.remove(&node) {
+            None => Vec::new(),
+            Some(v) => v,
+        };    
         if in_var ==  0 && !find(&node, &checked) {
             push_once(&mut w, node);
             push_once(&mut checked, node);
-            for adjecent in find_all(node, &edges) {
+            for adjecent in all {
                 queue.push_back((1,adjecent));
             }
         } else if in_var ==  1 && !find(&node, &checked){
             push_once(&mut u, node);
             push_once(&mut checked, node);
-            for adjecent in find_all(node, &edges) {
+            for adjecent in all {
                 queue.push_back((0,adjecent));
             }
+        } else {
+            map.insert(node, all);
         }
         
     }
 
-    if ! check(&w, &u, &edges){
+    if ! check(&w, &u, &mut map){
         return None;
     }
         
@@ -57,25 +65,46 @@ fn find_biparit<A: Eq + Copy>(nodes: &[A], edges: &[(A,A)]) -> Option<(Vec<A>, V
     
 }
 
-fn find_all<A: Eq + Copy>(i: A, vec: &[(A,A)]) -> Vec<A> {
-    let mut v = Vec::new();
 
-    for &(a,b) in vec {
-        if a == i {
-            push_once(&mut v, b);
+fn create_linked_list<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
+    let mut map = HashMap::new();
+    for &(a,b) in edges {
+        match map.remove(&a) {
+            None => {
+                let mut v: Vec<A> = Vec::new();
+                push_once(&mut v, b);
+                map.insert(a, v);
+            },
+            Some(mut v) => {
+                push_once(&mut v, b);
+                map.insert(a, v);
+            }
         }
-        if b == i {
-            push_once(&mut v, a);
+        match map.remove(&b) {
+            None => {
+                let mut v: Vec<A> = Vec::new();
+                push_once(&mut v, a);
+                map.insert(b, v);
+            },
+            Some(mut v) => {
+                push_once(&mut v, a);
+                map.insert(b, v);
+            }
         }
+            
     }
 
-    v
+    map
 
 }
 
-fn check<A: Eq + Copy>(w: &[A], u: &[A], edges: &[(A,A)]) -> bool{
+fn check<A: Eq + Copy + Hash>(w: &[A], u: &[A], map: &mut HashMap<A, Vec<A>>) -> bool{
     for &n in w {
-        for m in find_all(n, edges){
+        let all = match map.remove(&n) {
+            None => Vec::new(),
+            Some(v) => v,
+        };
+        for m in all{
             if find(&m, w){
                 return false;
             }
@@ -83,7 +112,11 @@ fn check<A: Eq + Copy>(w: &[A], u: &[A], edges: &[(A,A)]) -> bool{
     }
 
     for &n in u {
-        for m in find_all(n, edges){
+        let all = match map.remove(&n) {
+            None => Vec::new(),
+            Some(v) => v,
+        };
+        for m in all{
             if find(&m, u){
                 return false;
             }
