@@ -20,7 +20,7 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ve
     let mut w: Vec<A> = Vec::new();
     let mut u: Vec<A> = Vec::new();
     let mut checked: Vec<A> = Vec::new();
-    let mut map = create_linked_list(edges);
+    let mut map = create_map(edges);
     match nodes.first() {
         None => {
             return None;
@@ -66,7 +66,7 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ve
 }
 
 
-fn create_linked_list<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
+fn create_map<A: Eq + Copy + Hash>(edges: &[(A,A)]) -> HashMap<A, Vec<A>> {
     let mut map = HashMap::new();
     for &(a,b) in edges {
         match map.remove(&a) {
