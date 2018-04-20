@@ -4,7 +4,7 @@ use std::hash::Hash;
 fn main() {
 
     let nodes :Vec<i32>       = (0..6).collect();
-    let edges :Vec<(i32,i32)> = vec![(0,3),(1,3),(1,4),(1,5),(2,4)];
+    let edges :Vec<(i32,i32)> = vec![(0,1),(0,3),(1,3),(1,4),(1,5),(2,4)];
 
     let (w,v) = find_biparit(&nodes, &edges).unwrap();    
         
@@ -40,18 +40,18 @@ fn find_biparit<A: Eq + Copy + Hash>(nodes: &[A], edges: &[(A,A)]) -> Option<(Ve
         if in_var ==  0 && !find(&node, &checked) {
             push_once(&mut w, node);
             push_once(&mut checked, node);
-            for adjecent in all {
+            for &adjecent in &all {
                 queue.push_back((1,adjecent));
             }
         } else if in_var ==  1 && !find(&node, &checked){
             push_once(&mut u, node);
             push_once(&mut checked, node);
-            for adjecent in all {
+            for &adjecent in &all {
                 queue.push_back((0,adjecent));
             }
-        } else {
-            map.insert(node, all);
-        }
+        } 
+        map.insert(node, all);
+      
         
     }
 
