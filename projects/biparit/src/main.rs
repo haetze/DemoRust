@@ -4,7 +4,7 @@ use std::hash::Hash;
 fn main() {
 
     let nodes :Vec<i32>       = (0..6).collect();
-    let edges :Vec<(i32,i32)> = vec![(0,1),(0,3),(1,3),(1,4),(1,5),(2,4)];
+    let edges :Vec<(i32,i32)> = vec![(0,3),(1,3),(1,4),(1,5),(2,4)];
 
     let (w,v) = find_biparit(&nodes, &edges).unwrap();    
         
