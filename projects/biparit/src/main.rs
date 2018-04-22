@@ -27,46 +27,35 @@ fn find_biparit<I, J, A: Eq + Copy + Hash>(nodes: &I, edges: &J) -> Option<(Hash
     J: IntoIterator<Item = (A,A)> + Clone,
 {
     use std::collections::VecDeque;
+    let head;
     let nodes = nodes.clone().into_iter().collect::<Vec<_>>();
     let edges = edges.clone().into_iter().collect::<Vec<_>>();
-    let mut queue: VecDeque<(i32,A)> = VecDeque::new();
-    let head;
-    let mut w: HashSet<A> = HashSet::new();
-    let mut u: HashSet<A> = HashSet::new();
-    let mut checked: HashSet<A> = HashSet::new();
+    let empty                            = HashSet::new();
+    let mut queue  : VecDeque<(usize,A)> = VecDeque::new();
+    let mut w      : HashSet<A>          = HashSet::new();
+    let mut u      : HashSet<A>          = HashSet::new();
+    let mut checked: HashSet<A>          = HashSet::new();
     let mut map = create_map(&edges);
-    match nodes.first() {
-        None => {
-            return None;
-        },
-        Some(node) => {
-            head = *node;
-        },
-    };
+    if nodes.is_empty() {
+        return None;
+    }else{
+        head = nodes[0];
+    }
+    
 
     queue.push_back((0,head));
-    
-    while let Some((in_var, node)) = queue.pop_front() {
-        let all = match map.remove(&node) {
-            None => HashSet::new(),
-            Some(v) => v,
-        };    
-        if in_var ==  0 && !checked.contains(&node) {
-            w.insert(node);
-            checked.insert(node);
-            for &adjecent in &all {
-                queue.push_back((1,adjecent));
-            }
-        } else if in_var ==  1 && !checked.contains(&node){
-            u.insert(node);
-            checked.insert(node);
-            for &adjecent in &all {
-                queue.push_back((0,adjecent));
-            }
-        } 
-        map.insert(node, all);        
+    {
+        let mut sets = vec![&mut w, &mut u];
+        while let Some((in_var, node)) = queue.pop_front() {
+            let all = map.get(&node).unwrap_or(&empty);
+            let out_var = (in_var + 1) % 2;
+            if !checked.contains(&node) {
+                sets[in_var].insert(node);
+                checked.insert(node);
+                all.iter().for_each(|adj| queue.push_back((out_var,*adj)));
+            } 
+        }
     }
-
     if ! check(&w, &u, &mut map){
         return None;
     }
