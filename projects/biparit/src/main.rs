@@ -4,21 +4,21 @@ use std::hash::Hash;
 
 fn main() {
 
-    let nodes :HashSet<_>       = vec!['a', 'b','c','d','e','f'].into_iter().collect();
-    let edges :HashSet<_> = vec![('a','d'),('b','d'),('b','e'),('b','f'),('c','e')].into_iter().collect();
-
+    let nodes = vec!['a', 'b','c','d','e','f'];
+    let edges = vec![('a','d'),('b','d'),('b','e'),('b','f'),('c','e')];
+    println!("Input:\n\tNodes: {:?}\n\tEdges: {:?}", nodes, edges);
 
     match find_biparit(&nodes, &edges) {
-        Some((w,v)) => {
-            println!("{:?}", w);
-            println!("{:?}", v);
+        Some((w,u)) => {
+            println!("W: {:?}", w);
+            println!("U: {:?}", u);
         },
         None => {
             println!("No sets found");
         },
     }
 
-    println!("Input: {:?}, {:?}", nodes, edges);
+
 }
 
 fn find_biparit<I, J, A: Eq + Copy + Hash>(nodes: &I, edges: &J) -> Option<(HashSet<A>, HashSet<A>)>
