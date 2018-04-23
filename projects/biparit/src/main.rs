@@ -31,19 +31,14 @@ fn find_biparit<I, J, A: Eq + Copy + Hash>(nodes: &I, edges: &J) -> Option<(Hash
     let nodes = nodes.clone().into_iter().collect::<Vec<_>>();
     let edges = edges.clone().into_iter().collect::<Vec<_>>();
     let empty                            = HashSet::new();
-    let mut queue  : VecDeque<(usize,A)> = VecDeque::new();
-    let mut w      : HashSet<A>          = HashSet::new();
-    let mut u      : HashSet<A>          = HashSet::new();
-    let mut checked: HashSet<A>          = HashSet::new();
-    let mut map = create_map(&edges);
-    if nodes.is_empty() {
-        return None;
-    }else{
-        head = nodes[0];
-    }
-    
+    let mut w                            = HashSet::new();
+    let mut u                            = HashSet::new();
+    let mut checked                      = HashSet::new();
+    let mut queue                        = VecDeque::new();
+    let mut map                          = create_map(&edges);
+    if nodes.is_empty() { return None; }else{ head = nodes[0]; } 
+    queue.push_back((0 as usize,head));
 
-    queue.push_back((0,head));
     {
         let mut sets = vec![&mut w, &mut u];
         while let Some((in_var, node)) = queue.pop_front() {
@@ -56,14 +51,11 @@ fn find_biparit<I, J, A: Eq + Copy + Hash>(nodes: &I, edges: &J) -> Option<(Hash
             } 
         }
     }
-    if ! check(&w, &u, &mut map){
+    if !check(&w, &u, &mut map){
         return None;
     }
-        
+    
     Some((w, u))
-
-    
-    
 }
 
 
@@ -71,31 +63,26 @@ fn create_map<I, A: Eq + Copy + Hash>(edges: &I) -> HashMap<A, HashSet<A>>
     where
     I: IntoIterator<Item = (A,A)> + Clone,
 {
-    let edges = edges.clone().into_iter().collect::<Vec<_>>();
-    let mut map = HashMap::new();
+    let edges = edges.clone();
+    let mut map : HashMap<A, HashSet<A>> = HashMap::new();
     for (a,b) in edges {
-        match map.remove(&a) {
-            None => {
-                let mut v: HashSet<A> = HashSet::new();
-                v.insert(b);
-                map.insert(a, v);
-            },
-            Some(mut v) => {
-                v.insert(b);
-                map.insert(a, v);
-            }
+        if let Some(mut v) = map.remove(&a) {
+            v.insert(b);
+            map.insert(a, v);
+        } else {
+            let mut v: HashSet<A> = HashSet::new();
+            v.insert(b);
+            map.insert(a, v);
         }
-        match map.remove(&b) {
-            None => {
-                let mut v: HashSet<A> = HashSet::new();
-                v.insert(a);
-                map.insert(b, v);
-            },
-            Some(mut v) => {
-                v.insert(a);
-                map.insert(b, v);
-            }
+        if let Some(mut v) = map.remove(&b) {
+            v.insert(a);
+            map.insert(b, v);
+        } else {
+            let mut v: HashSet<A> = HashSet::new();
+            v.insert(a);
+            map.insert(b, v);
         }
+       
             
     }
 
@@ -105,25 +92,21 @@ fn create_map<I, A: Eq + Copy + Hash>(edges: &I) -> HashMap<A, HashSet<A>>
 
 fn check<A: Eq + Copy + Hash>(w: &HashSet<A>, u: &HashSet<A>, map: &mut HashMap<A, HashSet<A>>) -> bool{
     for &n in w {
-        let all = match map.remove(&n) {
-            None => HashSet::new(),
-            Some(v) => v,
-        };
-        for m in all{
-            if w.contains(&m) {
-                return false;
+        if let Some(all) = map.remove(&n) {
+            for m in all{
+                if w.contains(&m) {
+                    return false;
+                }
             }
         }
     }
 
     for &n in u {
-        let all = match map.remove(&n) {
-            None => HashSet::new(),
-            Some(v) => v,
-        };
-        for m in all{
-            if u.contains(&m){
-                return false;
+        if let Some(all) = map.remove(&n) {
+            for m in all{
+                if u.contains(&m){
+                    return false;
+                }
             }
         }
     }
