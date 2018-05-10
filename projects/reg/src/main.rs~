@@ -1,0 +1,12 @@
+
+enum RegExp<'a>{
+    Const(&'a String),
+    Seq(&'a RegExp, &'a RegExp),
+    Par(&'a RegExp, &'a RegExp),
+    Empty,
+    Epsilon,
+}
+
+fn main() {
+    println!("Hello, world!");
+}
