@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Debug)]
-enum RegExp{
+enum RegExp<'a>{
     Const(String),
     Seq(&'a RegExp<'a>, &'a RegExp<'a>),
     Par(&'a RegExp<'a>, &'a RegExp<'a>),
@@ -42,6 +42,6 @@ fn main() {
     use RegExp::*;
     let a = Const("a".to_string());
     let plus_a = Rep(&a);
-    let star_a = Par(&Epsilon, &plus_a);
+    let star_a = Par(&Empty, &plus_a);
     println!("{}", star_a);
 }
