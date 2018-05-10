@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Debug)]
-enum RegExp<'a>{
+enum RegExp{
     Const(String),
     Seq(&'a RegExp<'a>, &'a RegExp<'a>),
     Par(&'a RegExp<'a>, &'a RegExp<'a>),
@@ -20,7 +20,6 @@ impl<'a> fmt::Display for RegExp<'a> {
             Rep(r)       => format!("({}^+)", r),
             Empty        => "empty".to_string(),
             Epsilon      => "eps".to_string(),
-            _        => "".to_string(),
         };
         write!(f, "{}", string)
     }
@@ -28,6 +27,15 @@ impl<'a> fmt::Display for RegExp<'a> {
 
 fn repeat<'a>(r: &'a RegExp) -> RegExp<'a> {
     RegExp::Rep(r)
+}
+
+fn test<'a>() -> RegExp<'a>{
+    let b = RegExp::Const("b".to_string());
+    //Doesn't work because r would then point to an invalid memory address
+    //in this functions stack, after this function returned
+    //let r = repeat(&b);
+    //r
+    b
 }
 
 fn main() {
