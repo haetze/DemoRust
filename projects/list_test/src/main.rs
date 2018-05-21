@@ -1,68 +1,105 @@
-#[derive(Debug)]
-struct List<A> {
-    list: LList<A>,
-}
+use std::ops::Index;
+use std::iter::Iterator;
+use std::iter::FromIterator;
 
 #[derive(Debug)]
-enum LList<A> {
+enum List<A> {
     Nil,
-    Cons(A, Box<LList<A>>),
-}
-
-impl<A> LList<A> {
-    fn length(&self) -> u32 {
-        match *self{
-            LList::Nil => 0,
-            LList::Cons(_, ref tail) => 1 + tail.length(),
-        }
-    }
-
-    fn map<B>(&self, f: fn(&A) -> B) -> LList<B> {
-        match *self {
-            LList::Nil => LList::Nil,
-            LList::Cons(ref h, ref t) => LList::Cons(f(&h), Box::new(t.map(f))),
-        }
-    }
+    Cons(A, Box<List<A>>),
 }
 
 impl<A> List<A> {
     fn new() -> List<A> {
-        List{
-            list: LList::Nil,
+        List::Nil
+    }
+}
+
+impl<'a, A: 'a> ListIter<'a, A> {
+    fn put_in_vec(&mut self, mut l: &'a List<A>) {
+        let mut temp_vec = Vec::new();
+        while let List::Cons(ref h, ref t) = *l {
+            temp_vec.push(h);
+            l = t;
+        }
+        while let Some(i) = temp_vec.pop() {
+            self.l.push(i);
         }
     }
+}
+        
 
-    fn map<B>(&self, f: fn(&A) -> B) -> List<B> {
-        List {
-            list: self.list.map(f),
+struct ListIter<'a, A: 'a> {
+    l: Vec<&'a A>,
+}
+
+impl<'a, A: 'a> Iterator for ListIter<'a, A>{
+    type Item = &'a A;
+
+    fn next(&mut self) -> Option<Self::Item>{
+        self.l.pop()
+    }
+}
+
+impl<'a, A: 'a> IntoIterator for &'a List<A>{
+    type Item = &'a A;
+    type IntoIter = ListIter<'a, A>;
+    fn into_iter(self) -> Self::IntoIter {
+        let mut iter = ListIter{ l: Vec::new()};
+        iter.put_in_vec(&self);
+        iter
+    }
+}
+
+impl<A> FromIterator<A> for List<A> {
+    fn from_iter<I: IntoIterator<Item = A>> (iter: I) -> Self {
+        let mut l = List::Nil;
+        let mut temp_vec = Vec::new();
+        for i in iter {
+            temp_vec.push(i);
         }
-    }
-    
-    fn add(mut self, a: A) -> List<A>{
-        self.list = LList::Cons(a, Box::new(self.list));
-        self
-    }
-
-    fn up_to(x: i32) -> List<i32>{
-        let mut l = List::new();
-        for i in 0..x {
-            l = l.add(i);
+        while let Some(i) = temp_vec.pop() {
+            l = List::Cons(i, Box::new(l));
         }
         l
     }
+}
+    
+    
 
-    fn length(&self) -> u32{
-        self.list.length()
+impl<A> Index<usize> for List<A> {
+    type Output = A;
+
+    fn index(&self, i: usize) -> &A {
+        if i == 0 {
+            match self {
+                List::Cons(h,_) => h,
+                _               => panic!("Out of bound"),
+            }
+        }else{
+            match self {
+                List::Cons(_,t) => t.index(i-1),
+                _               => panic!("Out of bound"),
+            }
+        }
     }
-        
+
 }
 
+            
 
 
 fn main() {
-    let list : List<i32>  = List::<i32>::up_to(100);
-    //println!("{:?}", list);
-    println!("{:?}", list.length());
-    let list = list.map(|x| x * x);
+    let mut list : List<i32>  = List::<i32>::new();
+    for i in 0..10 {
+        list = List::Cons(i, Box::new(list));
+    }
     println!("{:?}", list);
+    for i in &list {
+        println!("{}", i);
+    }
+    // let v: List<_> = list.into_iter()
+    //     .map(|x| x*2)
+    //     .map(|x| format!("{}", x))
+    //     .collect();
+    // println!("{:?}", v);
 }
