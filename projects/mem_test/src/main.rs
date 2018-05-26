@@ -1,17 +1,31 @@
+use std::iter::FromIterator;
+
 #[derive(Debug)]
 struct Container<A> {
     c: A,
 }
 
-#[derive(Debug)]
-struct List<A> {
-    l: Box<InnerList<A>>,
+
+
+impl<A> Container<A> {
+    fn change(&mut self, x:A){
+        self.c = x;
+    }
+
+    fn use_fn(&mut self, f: fn(&A) -> A){
+        self.c = f(&self.c);
+    }
 }
 
 #[derive(Debug)]
 enum InnerList<A> {
     Nil,
     Cons(A, Box<InnerList<A>>),
+}
+
+#[derive(Debug)]
+struct List<A> {
+    l: Box<InnerList<A>>,
 }
 
 impl<A> List<A> {
@@ -23,15 +37,57 @@ impl<A> List<A> {
     }
 }
 
-impl<A> Container<A> {
-    fn change(&mut self, x:A){
-        self.c = x;
-    }
+struct ListIter<'a, A: 'a> {
+    data: Vec<&'a A>,
+}
 
-    fn use_fn(&mut self, f: fn(&A) -> A){
-        self.c = f(&self.c);
+impl<'a, A: 'a> ListIter<'a, A> {
+    fn put_in_vec(&mut self, l: &'a List<A>) {
+        let mut temp_vec = Vec::new();
+        let mut inner_list = &l.l;
+        while let InnerList::Cons(ref head, ref tail) = **inner_list {
+            temp_vec.push(head);
+            inner_list = tail;
+        }
+        while let Some(element) = temp_vec.pop() {
+            self.data.push(element);
+        }
     }
 }
+
+impl<'a, A: 'a> Iterator for ListIter<'a, A>{
+    type Item = &'a A;
+
+    fn next(&mut self) -> Option<Self::Item>{
+        self.data.pop()
+    }
+}
+
+impl<'a, A: 'a> IntoIterator for &'a List<A>{
+    type Item = &'a A;
+    type IntoIter = ListIter<'a, A>;
+    fn into_iter(self) -> Self::IntoIter {
+        let mut iter = ListIter{ data: Vec::new()};
+        iter.put_in_vec(&self);
+        iter
+    }
+}
+
+impl<A> FromIterator<A> for List<A> {
+    fn from_iter<I: IntoIterator<Item = A>> (iter: I) -> Self {
+        let mut l = InnerList::Nil;
+        let mut temp_vec = Vec::new();
+        for i in iter {
+            temp_vec.push(i);
+        }
+        while let Some(i) = temp_vec.pop() {
+            l = InnerList::Cons(i, Box::new(l));
+        }
+        List{ l: Box::new(l),}
+    }
+}
+
+
 
 fn main() {
     let mut c = Container{c: 32};
@@ -46,4 +102,9 @@ fn main() {
         l.insert(i);
         println!("{:?}", l);
     }
+    for i in &l {
+        println!("{:?}", i);
+    }
+
+
 }
