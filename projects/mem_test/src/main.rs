@@ -87,6 +87,13 @@ impl<A> FromIterator<A> for List<A> {
     }
 }
 
+fn pow(base: i32, exp: i32) -> i32 {
+    let mut result = base;
+    for _ in 1..exp {
+        result = result * base;
+    }
+    result
+}
 
 
 fn main() {
@@ -100,11 +107,9 @@ fn main() {
     println!("{:?}", l);
     for i in 0..10 {
         l.insert(i);
-        println!("{:?}", l);
+        // println!("{:?}", l);
     }
-    for i in &l {
-        println!("{:?}", i);
-    }
-
+    let l: List<i32> = l.into_iter().map(|x| pow(*x, *x)).collect();
+    println!("{:?}", l);
 
 }
