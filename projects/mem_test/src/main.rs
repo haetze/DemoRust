@@ -1,10 +1,11 @@
+#![allow(dead_code)]
 use std::iter::FromIterator;
+use std::mem::swap;
 
 #[derive(Debug)]
 struct Container<A> {
     c: A,
 }
-
 
 
 impl<A> Container<A> {
@@ -23,6 +24,31 @@ enum InnerList<A> {
     Cons(A, Box<InnerList<A>>),
 }
 
+impl<A> InnerList<A> {
+    fn take(self, n: usize) -> InnerList<A>{
+        use InnerList::{Nil, Cons};
+        if n <= 0 {
+            return Nil;
+        }
+        match self {
+            Nil => Nil,
+            Cons(h, t) => Cons(h, Box::new(t.take(n-1))),
+        }
+    }
+
+    fn skip(self, n: usize) -> InnerList<A> {
+        use InnerList::{Nil, Cons};
+        if n <= 0 {
+            return self;
+        }
+        match self {
+            Nil => Nil,
+            Cons(_, t) => t.skip(n-1),
+        }
+    }
+        
+}
+
 #[derive(Debug)]
 struct List<A> {
     l: Box<InnerList<A>>,
@@ -30,11 +56,33 @@ struct List<A> {
 
 impl<A> List<A> {
     fn insert(&mut self, a:A){
-        use std::mem::swap;
+        
         let mut l = Box::new(InnerList::Nil);
         swap(&mut l, &mut self.l);
         self.l = Box::new(InnerList::Cons(a, l));
     }
+    fn take(&mut self, n: usize) -> List<&A>{
+        self.into_iter().take(n).collect()
+    }
+
+    fn skip(&mut self, n: usize) -> List<&A>{
+        self.into_iter().skip(n).collect()
+    }
+
+    fn take_mut(&mut self, n: usize){
+        let mut l = Box::new(InnerList::Nil);
+        swap(&mut l, &mut self.l);
+        let mut l = l.take(n);
+        swap(&mut l, &mut self.l);
+    }
+
+    fn skip_mut(&mut self, n: usize){
+        let mut l = Box::new(InnerList::Nil);
+        swap(&mut l, &mut self.l);
+        let mut l = l.skip(n);
+        swap(&mut l, &mut self.l);
+    }
+        
 }
 
 struct ListIter<'a, A: 'a> {
@@ -111,5 +159,11 @@ fn main() {
     }
     let l: List<i32> = l.into_iter().map(|x| pow(*x, *x)).collect();
     println!("{:?}", l);
+    // change the list
+    // l.take_mut(3);
+    // println!("{:?}", l);
+    // with burrow
+    // let l = l.take(3);
+    // println!("{:?}", l);
 
 }
