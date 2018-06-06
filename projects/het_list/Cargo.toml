@@ -1,0 +1,6 @@
+[package]
+name = "het_list"
+version = "0.1.0"
+authors = ["Richard Stewing <richy.sting@gmail.com>"]
+
+[dependencies]
