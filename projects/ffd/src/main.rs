@@ -1,9 +1,8 @@
-
 fn main() {
-    let objects: Vec<u32> = vec![3, 1, 4, 2,
-                                     3, 1, 4, 2,
-                                     3, 1, 4, 2,
-                                     3, 1, 4, 2];
+    let objects: Vec<u32> = vec![3, 1, 4,
+                                 3, 1,
+                                 1, 4, 2,
+                                 3, 1, 4, 2];
                                      
 
     let partitions = ffd(objects, 10);
@@ -32,6 +31,5 @@ fn ffd(mut objects: Vec<u32>, limit_capacity: u32) -> Vec<Vec<u32>> {
         }
 
     }
-
     partitions
 }
