@@ -33,8 +33,8 @@ fn ffd<A: PartialOrd + Add<Output = A> + Clone + Copy>
     for i in objects {
         let mut added = false;
         for partition in &mut partitions {
-            let first = partition.iter().clone().nth(0).unwrap().clone();
-            let sum : A = partition.iter().clone().skip(1).fold(first, |acc, x| acc + *x);
+            let first = partition.iter().nth(0).unwrap().clone();
+            let sum : A = partition.iter().skip(1).fold(first, |acc, x| acc + *x);
             
             if sum + i <= limit_capacity {
                 partition.push(i);
