@@ -14,6 +14,28 @@ impl<A: PartialOrd + Add<Output = A> + Clone + Copy>  Weightable for A {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Object {
+    id: usize,
+    weight: usize,
+}
+
+impl Weightable for Object {
+    type Output = usize;
+    fn weight(&self) -> Self::Output {
+        self.weight.clone()
+    }
+}
+
+impl Object {
+    fn from_weight(x: usize) -> Object{
+        Object {
+            id: 0,
+            weight: x,
+        }
+    }
+}
+
 fn main() {
     let objects: Vec<i32> = vec![3, 1, 4,
                                  3, 1,
@@ -31,6 +53,23 @@ fn main() {
                                      
 
     let partitions = ffd(objects, 1.0);
+    println!("{:?}", partitions);
+
+    let objects: Vec<Object> = vec![Object::from_weight(3),
+                                    Object::from_weight(1),
+                                    Object::from_weight(4),
+                                    Object::from_weight(3),
+                                    Object::from_weight(1),
+                                    Object::from_weight(1),
+                                    Object::from_weight(4),
+                                    Object::from_weight(2),
+                                    Object::from_weight(3),
+                                    Object::from_weight(1),
+                                    Object::from_weight(4),
+                                    Object::from_weight(2)];
+                                     
+
+    let partitions = ffd(objects, 10);
     println!("{:?}", partitions);
 
     
