@@ -3,7 +3,7 @@ use std::cmp::PartialOrd;
 use std::ops::Add;
 
 trait Weightable {
-    type Output : Add<Output = Self::Output> + PartialOrd;
+    type Output : Add<Output = Self::Output> + PartialOrd + Add<Output = Self::Output>;
     fn weight(&self) -> Self::Output;
 }
 
@@ -14,21 +14,21 @@ impl<A: PartialOrd + Add<Output = A> + Copy>  Weightable for A {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-struct Object {
+#[derive(Debug, Clone)]
+struct Object<A: Add<Output = A> + PartialOrd + Copy> {
     id: usize,
-    weight: usize,
+    weight: A,
 }
 
-impl Weightable for Object {
-    type Output = usize;
+impl<A: Add<Output = A> + PartialOrd + Copy>  Weightable for Object<A> {
+    type Output = A;
     fn weight(&self) -> Self::Output {
-        self.weight.clone()
+        self.weight
     }
 }
 
-impl Object {
-    fn from_weight(x: usize) -> Object{
+impl<A: Add<Output = A> + PartialOrd + Copy> Object<A> {
+    fn from_weight(x: A) -> Object<A>{
         Object {
             id: 0,
             weight: x,
@@ -55,7 +55,7 @@ fn main() {
     let partitions = ffd(objects, 1.0);
     println!("{:?}", partitions);
 
-    let objects: Vec<Object> = vec![Object::from_weight(3),
+    let objects: Vec<Object<i32>> = vec![Object::from_weight(3),
                                     Object::from_weight(1),
                                     Object::from_weight(4),
                                     Object::from_weight(3),
