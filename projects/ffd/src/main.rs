@@ -7,10 +7,10 @@ trait Weightable {
     fn weight(&self) -> Self::Output;
 }
 
-impl<A: PartialOrd + Add<Output = A> + Clone + Copy>  Weightable for A {
+impl<A: PartialOrd + Add<Output = A> + Copy>  Weightable for A {
     type Output = A;
     fn weight(&self) -> Self::Output {
-        self.clone()
+        *self
     }
 }
 
