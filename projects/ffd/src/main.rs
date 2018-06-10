@@ -76,31 +76,32 @@ fn main() {
 }
 
 fn ffd<B: Add<Output = B> + PartialOrd,
-       A: Weightable<Output = B> + Clone + Copy>
+       A: Weightable<Output = B>>
     (mut objects: Vec<A>, limit_capacity: B) -> Vec<Vec<A>> {
         
     let mut partitions : Vec<Vec<A>> = Vec::new();
     objects.sort_by(|a, b| b.weight().partial_cmp(&a.weight()).unwrap_or(Equal));
 
     for i in objects {
-        let mut added = false;
+        let mut index = 0;
+        
         for partition in &mut partitions {
-            let first = partition.iter().nth(0).unwrap().clone();
-            let sum : B = partition.iter().skip(1).fold(first.weight(), |acc, x| acc + x.weight());
-            
+            let first = partition.pop().unwrap();
+            let sum : B = partition.iter().fold(first.weight(), |acc, x| acc + x.weight());
+            partition.push(first);
+
             if sum + i.weight() <= limit_capacity {
-                partition.push(i);
-                added = true;
                 break;
             }
+            index = index + 1;
             
         }
         
-        if !added {
-            let mut p = Vec::new();
-            p.push(i);
-            partitions.push(p);
+        if index == partitions.len() {
+            partitions.push(Vec::new());
         }
+        partitions[index].push(i);
+
 
     }
     partitions
