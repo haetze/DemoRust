@@ -1,6 +1,10 @@
+extern crate uuid;
+
+
 use std::cmp::Ordering::*;
 use std::cmp::PartialOrd;
 use std::ops::Add;
+use uuid::Uuid;
 
 trait Weightable {
     type Output : Add<Output = Self::Output> + PartialOrd + Add<Output = Self::Output>;
@@ -16,7 +20,7 @@ impl<A: PartialOrd + Add<Output = A> + Copy>  Weightable for A {
 
 #[derive(Debug, Clone)]
 struct Object<A: Add<Output = A> + PartialOrd + Copy> {
-    id: usize,
+    id: String,
     weight: A,
 }
 
@@ -30,7 +34,7 @@ impl<A: Add<Output = A> + PartialOrd + Copy>  Weightable for Object<A> {
 impl<A: Add<Output = A> + PartialOrd + Copy> Object<A> {
     fn from_weight(x: A) -> Object<A>{
         Object {
-            id: 0,
+            id: Uuid::new_v4().to_string(),
             weight: x,
         }
     }
