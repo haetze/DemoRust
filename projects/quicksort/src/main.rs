@@ -3,7 +3,6 @@ extern crate rand;
 use std::cmp::PartialOrd;
 use std::mem::swap;
 use rand::Rng;
-use std::thread;
 
 trait Split: Sized{
     type Inner;
@@ -70,6 +69,7 @@ impl<A: PartialOrd> Split for Vec<A> {
 #[test]
 fn test_quicksort(){
 
+    use std::thread;
     let mut joins = Vec::new();
     for _ in 0..8 {
 
