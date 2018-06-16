@@ -72,6 +72,7 @@ impl Exp {
                     Mult => operand_1.fold_num(),
                     Divs => 1.0 / operand_1.fold_num(),
                     Mins => operand_1.fold_num() * -1.0,
+                    Powr => operand_1.fold_num().powf(2),
                     _    => panic!("Error unexpected Operator"),
                 }
             },
