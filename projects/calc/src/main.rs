@@ -130,35 +130,49 @@ impl Exp {
 }
 
 
+fn handle_line(line: Result<String, std::io::Error>) -> bool{
+    
+    let mut stdout = io::stdout();
+
+    match line {
+        Ok(exp_string) => {
+            match exp_string.as_str() {
+                ":q" => {
+                    println!("Quitting..");
+                    return true;
+                },
+                _ => {
+                    match Exp::read(exp_string) {
+                        Err(error) => println!(">!>!>!>! {:?}", error), 
+                        Ok((exp, _)) => println!(">=>=>=>= {:?}", exp.fold_num()),
+                    };
+                },
+            }
+        },
+        Err(_) => panic!("Read Error"),
+    }
+    
+    print!("<=<=<=<= ");
+    stdout.flush().ok();
+    return false;
+}
                     
 
 
 fn main() {
+   
+    
     let stdin = io::stdin();
-    let mut stdout = io::stdout();
 
     print!("<=<=<=<= ");
-    stdout.flush().ok();
+    io::stdout().flush().ok();
     
     for line in stdin.lock().lines() {
         
-        
-        match line {
-            Ok(exp_string) => {
-                if exp_string == ":q" {
-                    println!("Quitting..");
-                    break;
-                }
-                match Exp::read(exp_string) {
-                    Err(error) => println!(">!>!>!>! {:?}", error), 
-                    Ok((exp, _)) => println!(">=>=>=>= {:?}", exp.fold_num()),
-                };
-            },
-            Err(_) => panic!("Read Error"),
+        if handle_line(line) {
+            break;
         }
-
-        print!("<=<=<=<= ");
-        stdout.flush().ok();
+ 
     }
     
 }
