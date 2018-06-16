@@ -15,6 +15,8 @@ enum Op {
     Mult,
     Divs,
     Powr,
+    Modu,
+    Rond,
 }
 
 impl Op {
@@ -30,8 +32,12 @@ impl Op {
                 Some('*') => Ok((Mult, input)),
                 Some('/') => Ok((Divs, input)),
                 Some('^') => Ok((Powr, input)),
-                Some(c) => Err(OperatorParseError(Some(c), input)),
-                
+                Some('%') => Ok((Modu, input)),
+                Some('&') => Ok((Rond, input)),
+                Some(c) => {
+                    input.push(c);
+                    Err(OperatorParseError(Some(c), input))
+                },
             }
         }
 
@@ -46,8 +52,9 @@ impl Op {
 
 #[derive(Debug)]
 enum Exp {
-    Com(Op, Box<Exp>, Box<Exp>),
     Num(f64),
+    Single(Op, Box<Exp>),
+    Com(Op, Box<Exp>, Box<Exp>),
 }
 
 
@@ -58,6 +65,16 @@ impl Exp {
         
         match self {
             Num(number) => number,
+            Single(op, operand_1) => {
+                match op {
+                    Rond => operand_1.fold_num().round(),
+                    Plus => operand_1.fold_num(),
+                    Mult => operand_1.fold_num(),
+                    Divs => 1.0 / operand_1.fold_num(),
+                    Mins => operand_1.fold_num() * -1.0,
+                    _    => panic!("Error unexpected Operator"),
+                }
+            },
             Com(op, operand_1, operand_2) => {
                 match op {
                     Plus => operand_1.fold_num() + operand_2.fold_num(),
@@ -65,8 +82,10 @@ impl Exp {
                     Mult => operand_1.fold_num() * operand_2.fold_num(),
                     Divs => operand_1.fold_num() / operand_2.fold_num(),
                     Powr => operand_1.fold_num().powf(operand_2.fold_num()),
+                    Modu => operand_1.fold_num() % operand_2.fold_num(),
+                    Rond => panic!("Error unexpected Operator"),
                 }
-            }
+            },
         }
     }
 
@@ -118,17 +137,31 @@ impl Exp {
     fn read(input: String) -> Result<(Exp, String), ReadError> {
         use Op::*;
         use Exp::*;
-        let (operand_1, input) = Exp::read_number(input)?;
-        if input.is_empty() {
-            return Ok((Num(operand_1), input));
-        }
-        let (operator, input) = Op::read(input)?;
-        match operator {
-            Divs => Exp::read_from_high_prior(Num(operand_1), operator, input),
-            Mult => Exp::read_from_high_prior(Num(operand_1), operator, input),
-            Mins => Exp::read_from_low_prior(Num(operand_1), operator, input),
-            Plus => Exp::read_from_low_prior(Num(operand_1), operator, input),
-            Powr => Exp::read_from_low_prior(Num(operand_1), operator, input),
+        use ReadError::*;
+        
+        match Op::read(input) {
+            Ok((operator, rest_input)) => {
+                let (exp, string) = Exp::read(rest_input)?;
+                Ok((Single(operator, Box::new(exp)), string))
+            },
+            Err(OperatorParseError(_, input))  => {
+                let (operand_1, input) = Exp::read_number(input)?;
+                if input.is_empty() {
+                    return Ok((Num(operand_1), input));
+                }
+                let (operator, input) = Op::read(input)?;
+                match operator {
+                    Divs => Exp::read_from_high_prior(Num(operand_1), operator, input),
+                    Mult => Exp::read_from_high_prior(Num(operand_1), operator, input),
+                    Mins => Exp::read_from_low_prior(Num(operand_1), operator, input),
+                    Plus => Exp::read_from_low_prior(Num(operand_1), operator, input),
+                    Powr => Exp::read_from_low_prior(Num(operand_1), operator, input),
+                    Modu => Exp::read_from_low_prior(Num(operand_1), operator, input),
+                    Rond => Ok((Single(operator, Box::new(Num(operand_1))), input)),
+                }
+            },
+            _ => panic!("Error"),
+            
         }
     }
 
