@@ -14,6 +14,7 @@ enum Op {
     Mins,
     Mult,
     Divs,
+    Powr,
 }
 
 impl Op {
@@ -28,12 +29,13 @@ impl Op {
                 Some('-') => Ok((Mins, input)),
                 Some('*') => Ok((Mult, input)),
                 Some('/') => Ok((Divs, input)),
+                Some('^') => Ok((Powr, input)),
                 Some(c) => Err(OperatorParseError(Some(c), input)),
                 
             }
         }
 
-        let input: String = input.chars().rev().collect();
+        let input: String = input.trim_left().chars().rev().collect();
         match read_intern(input) {
             Err(OperatorParseError(x, input)) => Err(OperatorParseError(x, input.chars().rev().collect())),
             Ok((op, input)) => Ok((op, input.chars().rev().collect())),
@@ -62,6 +64,7 @@ impl Exp {
                     Mins => operand_1.fold_num() - operand_2.fold_num(),
                     Mult => operand_1.fold_num() * operand_2.fold_num(),
                     Divs => operand_1.fold_num() / operand_2.fold_num(),
+                    Powr => operand_1.fold_num().powf(operand_2.fold_num()),
                 }
             }
         }
@@ -69,6 +72,7 @@ impl Exp {
 
     fn read_number(input: String) -> Result<(f64, String), ReadError> {
         use ReadError::ExpectedNumberError;
+        let input: String = input.trim_left().chars().collect();
         
         let number: String = input.chars()
             .into_iter()
@@ -124,6 +128,7 @@ impl Exp {
             Mult => Exp::read_from_high_prior(Num(operand_1), operator, input),
             Mins => Exp::read_from_low_prior(Num(operand_1), operator, input),
             Plus => Exp::read_from_low_prior(Num(operand_1), operator, input),
+            Powr => Exp::read_from_low_prior(Num(operand_1), operator, input),
         }
     }
 
