@@ -131,8 +131,15 @@ impl GeneratorWithFn{
          }),v)
     }
 
-    // fn new_linear_con(m: i32, a: i32, c: i32, seed: i32) -> Self {
-    // }
+    fn new_linear_con(m: i32, a: i32, c: i32, seed: i32) -> Self {
+        GeneratorWithFn::new(Box::new(move |v: &mut Vec<i32>| {
+            let x_n = v.pop().unwrap();
+            let x_n_plus_1 = (a * x_n + c) % m;
+            v.push(x_n);
+            v.push(x_n_plus_1);
+            x_n_plus_1
+        }), vec![seed])
+    }
 }
 
 impl Iterator for GeneratorWithFn {
