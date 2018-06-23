@@ -119,7 +119,7 @@ impl GeneratorWithFn{
         }
     }
     
-    fn new_fib(m: i32, v: Vec<i32>) -> Self {
+    fn new_fib(m: i32, seed_1: i32, seed_2: i32) -> Self {
          GeneratorWithFn::new(Box::new(move |v: &mut Vec<i32>| {
              let x = v.pop().unwrap();
              let y = v.pop().unwrap();
@@ -128,7 +128,7 @@ impl GeneratorWithFn{
              v.push(x);
              v.push(z);
              return z;
-         }),v)
+         }),vec![seed_1, seed_2])
     }
 
     fn new_linear_con(m: i32, a: i32, c: i32, seed: i32) -> Self {
@@ -167,10 +167,17 @@ fn print_n_for_iter<A: Iterator<Item=i32> + IsInfiniteSequence>(mut iter: A, n: 
 
 
 fn main() {
-    let random_gen_1 = LinearCongruentialMethod::new(100, 7, 8, 9);
+    let m_lin = 100;
+    let a = 7;
+    let c = 8;
+    let seed_lin = 9;    
+    let random_gen_1 = LinearCongruentialMethod::new(m_lin, a, c, seed_lin);
     print_n_for_iter(random_gen_1, 100, "LinearCongruentialMethod".to_string());
 
-    let random_gen_2 = FibGen::new(100, 7, 8);
+    let m_fib = 100;
+    let seed_1 = 7;
+    let seed_2 = 8;
+    let random_gen_2 = FibGen::new(m_fib, seed_1, seed_2);
     print_n_for_iter(random_gen_2, 100, "FibGen".to_string());
 
     let rnd_gen_1 = LinearCongruentialMethod::new(12343, 84, 56, 43);
@@ -178,7 +185,10 @@ fn main() {
     let random_gen_3 = Shuffler::new(rnd_gen_1, rnd_gen_2, 321);
     print_n_for_iter(random_gen_3, 100, "Shuffler".to_string());
 
-    let random_gen_4 = GeneratorWithFn::new_fib(100, vec![7,8]);
+    let random_gen_4 = GeneratorWithFn::new_fib(m_fib, seed_1, seed_2);
     print_n_for_iter(random_gen_4, 100, "FibGenFn".to_string());
+
+    let random_gen_1 = GeneratorWithFn::new_linear_con(m_lin, a, c, seed_lin);
+    print_n_for_iter(random_gen_1, 100, "LinearCongruentialMethodFn".to_string());
     
 }
