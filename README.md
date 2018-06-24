@@ -26,4 +26,4 @@
 * [Syntax and Semantics from book](https://github.com/haetze/DemoRust/tree/master/projects/syntax_semantics)
 * [Using Tasks](https://github.com/haetze/DemoRust/tree/master/projects/tasks)
 * [Updateable](https://github.com/haetze/DemoRust/tree/master/projects/updateable)
-* [Small webserver](https://github.com/haetze/DemoRust/tree/master/projects/webserver)
+* [Small webserver](https://github.com/haetze/DemoRust/tree/master/projects/web_server)
