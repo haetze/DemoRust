@@ -27,3 +27,4 @@
 * [Using Tasks](https://github.com/haetze/DemoRust/tree/master/projects/tasks)
 * [Updateable](https://github.com/haetze/DemoRust/tree/master/projects/updateable)
 * [Small webserver](https://github.com/haetze/DemoRust/tree/master/projects/web_server)
+* [Maximum for Vec's](https://github.com/haetze/DemoRust/tree/master/projects/maximum)
