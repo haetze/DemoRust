@@ -27,6 +27,7 @@ impl<A: Ord> Maximum for Vec<A> {
 fn main() {
     let v = vec![1,2,3,4,100,5,6,7,78,9];
     let max = v.maximum();
-    let max_2 = v.into_iter().max();
+    let max_2 = (&v).into_iter().max(); // can also be done like this
     println!("{:?} is the maximum im Vec", max);
+    println!("{:?} is the maximum im Vec", max_2);
 }
