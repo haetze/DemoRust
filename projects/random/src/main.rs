@@ -190,5 +190,8 @@ fn main() {
 
     let random_gen_1 = GeneratorWithFn::new_linear_con(m_lin, a, c, seed_lin);
     print_n_for_iter(random_gen_1, 100, "LinearCongruentialMethodFn".to_string());
-    
+
+    let random_gen_vec_1: Vec<i32> = GeneratorWithFn::new_linear_con(m_lin, a, c, seed_lin).take(100).collect();
+    let random_gen_vec_2: Vec<i32> = LinearCongruentialMethod::new(m_lin, a, c, seed_lin).take(100).collect();
+    println!("{}", random_gen_vec_1 == random_gen_vec_2 /* Should be true*/);
 }
