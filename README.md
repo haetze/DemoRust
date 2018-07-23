@@ -28,3 +28,4 @@
 * [Updateable](https://github.com/haetze/DemoRust/tree/master/projects/updateable)
 * [Small webserver](https://github.com/haetze/DemoRust/tree/master/projects/web_server)
 * [Maximum for Vec's](https://github.com/haetze/DemoRust/tree/master/projects/maximum)
+* [Lifetime Demo](https://github.com/haetze/DemoRust/tree/master/projects/lifetime_demo)
