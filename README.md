@@ -35,5 +35,5 @@
 * [Game Server (Future based) for 2048 based on lib_2048](https://github.com/haetze/server_2_2048)
 
 # Learning material
-* [The Rust Programming Language]  (https://doc.rust-lang.org/book/)is a good starting point
+* [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
 * [Programming Rust - Fast, Safe Systems Development By Jim Blandy, Jason Orendorff](http://shop.oreilly.com/product/0636920040385.do)
