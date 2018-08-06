@@ -33,6 +33,7 @@
 * [Simple Bin for 2048 based on lib_2048 (Data structures and methods on them)](https://github.com/haetze/bin_2048)
 * [Game Server (Thread based) for 2048 based on lib_2048](https://github.com/haetze/server_2048)
 * [Game Server (Future based) for 2048 based on lib_2048](https://github.com/haetze/server_2_2048)
+* [Shuffle for slices, Fisher and Yates Algorithm](https://github.com/haetze/DemoRust/tree/master/projects/shuffle)
 
 # Learning material
 * [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
