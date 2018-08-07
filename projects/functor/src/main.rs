@@ -1,5 +1,3 @@
-use std::iter::IntoIterator;
-use std::iter::FromIterator;
 
 trait Functor<T, U> {
     type Out;
@@ -8,8 +6,18 @@ trait Functor<T, U> {
     
 }
 
+impl<A, B> Functor<A,B> for Option<A>{
+    type Out = Option<B>;
+    fn fmap<F>(self, f: F) -> Self::Out
+        where F: Fn(A) -> B {
+        match self {
+            None => None,
+            Some(a) => Some(f(a)),
+        }
+    }
+}
 
-impl<A, B, I: IntoIterator<Item = A>> Functor<A, B> for I {
+impl<A, B> Functor<A, B> for Vec<A> {
     type Out = Vec<B>;
     fn fmap<F>(self, f: F) -> Self::Out
         where F: Fn(A) -> B {
