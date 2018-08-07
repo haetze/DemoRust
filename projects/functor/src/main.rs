@@ -30,6 +30,17 @@ impl<A, B> Functor<A, B> for Vec<A> {
     }
 }
 
+impl<A, B, E> Functor<A, B> for Result<A, E> {
+    type Out = Result<B, E>;
+    fn fmap<F>(self, f: F) -> Self::Out
+        where F: Fn(A) -> B {
+        match self {
+            Ok(a) => Ok(f(a)),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 fn main() {
     let before = Some(12);
     println!("{:?}", before);
