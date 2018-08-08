@@ -37,20 +37,6 @@ impl<A, B> Monad<A, B> for Option<A> {
     }
 }
 
-impl<A, B> Monad<A, B> for Vec<A> {
-    type MonadOut = Vec<B>;
-    fn eta(a: A) -> Vec<A> {
-        vec![a]
-    }
-    fn bind<F>(self, f: F) -> Self::MonadOut
-        where F: Fn(A) -> Self::MonadOut {
-        let mut v = Vec::new();
-        for e in self {
-            v.push(f(e));
-        }
-        v.into_iter().flatten().collect()
-    }
-}
  
 impl<A, B> Functor<A, B> for Vec<A> {
     type Out = Vec<B>;
@@ -65,6 +51,22 @@ impl<A, B> Functor<A, B> for Vec<A> {
     }
 }
 
+impl<A, B> Monad<A, B> for Vec<A> {
+    type MonadOut = Vec<B>;
+    fn eta(a: A) -> Vec<A> {
+        vec![a]
+    }
+    fn bind<F>(self, f: F) -> Self::MonadOut
+        where F: Fn(A) -> Self::MonadOut {
+        let mut v = Vec::new();
+        for e in self {
+            v.push(f(e));
+        }
+        v.into_iter().flatten().collect()
+    }
+}
+
+
 impl<A, B, E> Functor<A, B> for Result<A, E> {
     type Out = Result<B, E>;
     fn fmap<F>(self, f: F) -> Self::Out
@@ -75,6 +77,22 @@ impl<A, B, E> Functor<A, B> for Result<A, E> {
         }
     }
 }
+
+impl<A, B, E> Monad<A, B> for Result<A, E> {
+    type MonadOut = Result<B, E>;
+    fn eta(a: A) -> Result<A, E> {
+        Ok(a)
+    }
+    fn bind<F>(self, f: F) -> Self::MonadOut
+        where F: Fn(A) -> Self::MonadOut {
+        match self {
+            Err(e) => Err(e),
+            Ok(a) => f(a),
+        }
+    }
+}
+
+
 
 fn main() {
     let before = Some(12);
