@@ -99,4 +99,12 @@ fn main() {
     println!("{:?}", before);
     let after = before.fmap(|x| x + 1);
     println!("{:?}", after);
+    let even_later = after.bind(|_| Some(0));
+    println!("{:?}", even_later);
+    let in_one_go = Some(12)
+        .bind(|y| Some(y+1))
+        .bind(|x| Some(x*2));
+    println!("{:?}", in_one_go);
+    
+    
 }
