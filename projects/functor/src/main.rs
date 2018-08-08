@@ -37,6 +37,20 @@ impl<A, B> Monad<A, B> for Option<A> {
     }
 }
 
+impl<A, B> Monad<A, B> for Vec<A> {
+    type MonadOut = Vec<B>;
+    fn eta(a: A) -> Vec<A> {
+        vec![a]
+    }
+    fn bind<F>(self, f: F) -> Self::MonadOut
+        where F: Fn(A) -> Self::MonadOut {
+        let mut v = Vec::new();
+        for e in self {
+            v.push(f(e));
+        }
+        v.into_iter().flatten().collect()
+    }
+}
  
 impl<A, B> Functor<A, B> for Vec<A> {
     type Out = Vec<B>;
