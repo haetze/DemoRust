@@ -1,0 +1,1 @@
+/usr/home/haetze/Documents/Code/DemoRust/projects/async_read_keyboard/target/debug/async_read_keyboard: /usr/home/haetze/Documents/Code/DemoRust/projects/async_read_keyboard/src/main.rs /usr/home/haetze/Documents/Code/DemoRust/projects/async_read_keyboard/src/stdin_stream.rs

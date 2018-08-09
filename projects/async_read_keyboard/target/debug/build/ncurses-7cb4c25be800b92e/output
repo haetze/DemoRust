@@ -1,0 +1,21 @@
+cargo:rerun-if-env-changed=PKG_CONFIG_PATH
+cargo:rustc-link-lib=ncurses
+OPT_LEVEL = Some("0")
+TARGET = Some("x86_64-unknown-freebsd")
+HOST = Some("x86_64-unknown-freebsd")
+TARGET = Some("x86_64-unknown-freebsd")
+TARGET = Some("x86_64-unknown-freebsd")
+HOST = Some("x86_64-unknown-freebsd")
+CC_x86_64-unknown-freebsd = None
+CC_x86_64_unknown_freebsd = None
+HOST_CC = None
+CC = None
+HOST = Some("x86_64-unknown-freebsd")
+TARGET = Some("x86_64-unknown-freebsd")
+HOST = Some("x86_64-unknown-freebsd")
+CFLAGS_x86_64-unknown-freebsd = None
+CFLAGS_x86_64_unknown_freebsd = None
+HOST_CFLAGS = None
+CFLAGS = None
+DEBUG = Some("true")
+cargo:rustc-cfg=feature="wide_chtype"

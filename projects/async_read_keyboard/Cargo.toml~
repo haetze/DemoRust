@@ -1,0 +1,9 @@
+[package]
+name = "async_read_keyboard"
+version = "0.1.0"
+authors = ["Richard Stewing <richy.sting@gmail.com>"]
+
+[dependencies]
+tokio = "0.1.7"
+tokio-io = "0.1.7"
+futures = "0.1.23"
