@@ -13,6 +13,8 @@ pub fn stdin() -> impl Stream<Item = char, Error = ()> {
     thread::spawn(move || {
         loop {
             // somehow it's always of by one
+            // probably related to a race condition
+            // in ncurses
             let c = getch() as u8 as char; 
             match tx.send(c).wait() {
                 Ok(s) => tx = s,
