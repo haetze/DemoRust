@@ -93,7 +93,10 @@ impl<A, B, E> Monad<A, B> for Result<A, E> {
 }
 
 
-
+// This is remecent of the map and and_then
+// function implemented on many types and
+// used for async programming with
+// futures in rust
 fn main() {
     let before = Some(12);
     println!("{:?}", before);
