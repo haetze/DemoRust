@@ -35,6 +35,7 @@
 * [Game Server (Future based) for 2048 based on lib_2048](https://github.com/haetze/server_2_2048)
 * [Shuffle for slices, Fisher and Yates Algorithm](https://github.com/haetze/DemoRust/tree/master/projects/shuffle)
 * [Functor/Monad](https://github.com/haetze/DemoRust/tree/master/projects/functor)
+* [Reading a single char from keyboard async-ly, it's awful](https://github.com/haetze/DemoRust/tree/master/projects/async_read_keyboard)
 
 # Learning material
 * [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
