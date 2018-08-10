@@ -1,21 +1,23 @@
 extern crate futures;
-extern crate ncurses;
-
-use self::ncurses::*;
+extern crate console;
 
 use futures::{Future, Sink, Stream};
 use futures::sync::mpsc::channel;
+
+use self::console::Term;
+use self::console::Key::Char;
 
 use std::thread;
 
 pub fn stdin() -> impl Stream<Item = char, Error = ()> {
     let (mut tx, rx) = channel(1);
     thread::spawn(move || {
+        let term = Term::stdout();
         loop {
-            // somehow it's always of by one
-            // probably related to a race condition
-            // in ncurses
-            let c = getch() as u8 as char; 
+            let c = match term.read_key().unwrap() {
+                Char(c) => c,
+                _       => ' ',
+            };
             match tx.send(c).wait() {
                 Ok(s) => tx = s,
                 Err(_) => break,

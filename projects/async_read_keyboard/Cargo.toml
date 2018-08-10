@@ -7,4 +7,4 @@ authors = ["Richard Stewing <richy.sting@gmail.com>"]
 tokio = "0.1.7"
 tokio-io = "0.1.7"
 futures = "0.1.23"
-ncurses = "*"
+console = "0.6.1"

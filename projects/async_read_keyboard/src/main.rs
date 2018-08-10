@@ -1,11 +1,10 @@
 extern crate tokio;
 extern crate futures;
-extern crate ncurses;
-
+extern crate console;
 
 use futures::Stream;
 
-use ncurses::*;
+use console::Term;
 
 mod stdin_stream;
 
@@ -14,15 +13,14 @@ use futures::IntoFuture;
 
 
 fn main() {
-    initscr();
-    noecho();
     let mut count = 0;
-    
+    let term = Term::stdout();
     let f = stdin()
         .and_then(move |string| {
             count += 1;
-            let s = format!("{}: {:?}\n", count,  string);
-            printw(&s);
+            let s = format!("{}: {:?}", count,  string);
+            term.write_line(&s).unwrap();
+            term.clear_line().unwrap();
             Ok(())
         })
         .for_each(|_| Ok(()))
