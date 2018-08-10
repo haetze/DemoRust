@@ -5,6 +5,5 @@ authors = ["Richard Stewing <richy.sting@gmail.com>"]
 
 [dependencies]
 tokio = "0.1.7"
-tokio-io = "0.1.7"
 futures = "0.1.23"
 console = "0.6.1"
