@@ -1,9 +1,20 @@
+use std::env;
+
+const DEFAULT_NUMBER: u32 = 1000;
+
 fn main() {
-    // for i in 1..100 {
-    //     println!("{} is prime? {}", i, is_prime(i));
-    //     println!("{} is prime? {}", i, is_prime_2(i));
-    // }
-    println!("{:?}", primes_til(10000));
+    let number = match env::args().skip(1).next() {
+        None => DEFAULT_NUMBER,
+        Some(n) => match n.parse() {
+            Ok(n) => n,
+            Err(_) => DEFAULT_NUMBER,
+        },
+    };
+    for i in 1..number {
+        println!("{} is prime? {}", i, is_prime(i));
+        println!("{} is prime? {}", i, is_prime_2(i));
+    }
+    println!("{:?}", primes_til(number));
     
 }
 
