@@ -1,9 +1,9 @@
 fn main() {
-    for i in 1..100 {
-        println!("{} is prime? {}", i, is_prime(i));
-        println!("{} is prime? {}", i, is_prime_2(i));
-    }
-    println!("{:?}", primes_til(100));
+    // for i in 1..100 {
+    //     println!("{} is prime? {}", i, is_prime(i));
+    //     println!("{} is prime? {}", i, is_prime_2(i));
+    // }
+    println!("{:?}", primes_til(10000));
     
 }
 
