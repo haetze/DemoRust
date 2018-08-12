@@ -20,6 +20,8 @@ fn main() {
     let set: HashSet<_> = primes_til(number);
     println!("{:?} as Vec", vec);
     println!("{:?} as HashSet", set);
+    println!("Vec only primes? {}", vec.iter().all(|x| is_prime_2(*x)));
+    println!("Set only primes? {}", set.iter().all(|x| is_prime_2(*x)));
     
     
 }
