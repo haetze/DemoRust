@@ -1,4 +1,6 @@
 use std::env;
+use std::iter::FromIterator;
+use std::collections::HashSet;
 
 const DEFAULT_NUMBER: u32 = 1000;
 
@@ -14,7 +16,8 @@ fn main() {
         println!("{} is prime? {}", i, is_prime(i));
         println!("{} is prime? {}", i, is_prime_2(i));
     }
-    println!("{:?}", primes_til(number));
+    println!("{:?} as Vec", primes_til::<Vec<_>>(number));
+    println!("{:?} as HashSet", primes_til::<HashSet<_>>(number));
     
 }
 
@@ -38,12 +41,12 @@ fn is_prime_2(u: u32) -> bool {
     }
 }
 
-fn primes_til(u: u32) -> Vec<u32> {
+fn primes_til<A: FromIterator<u32>>(u: u32) -> A {
     let mut v = vec![2];
     for i in 3..u {
         if v.iter().all(|x| i % x != 0) {
             v.push(i);
         }
     }
-    v
+    v.into_iter().collect()
 }
