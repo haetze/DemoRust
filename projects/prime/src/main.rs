@@ -16,8 +16,11 @@ fn main() {
         println!("{} is prime? {}", i, is_prime(i));
         println!("{} is prime? {}", i, is_prime_2(i));
     }
-    println!("{:?} as Vec", primes_til::<Vec<_>>(number));
-    println!("{:?} as HashSet", primes_til::<HashSet<_>>(number));
+    let vec: Vec<_> = primes_til(number);
+    let set: HashSet<_> = primes_til(number);
+    println!("{:?} as Vec", vec);
+    println!("{:?} as HashSet", set);
+    
     
 }
 
