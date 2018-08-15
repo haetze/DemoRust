@@ -1,4 +1,3 @@
-
 enum Nat{
     Epsilon,
     Nat(Box<Nat>)
@@ -22,7 +21,7 @@ impl std::cmp::PartialEq for Nat{
 }
 
 impl Nat {
-    fn to_int(self) -> i32{
+    fn to_int(self) -> u32{
         match self {
             Nat::Epsilon => 0,
             Nat::Nat(x)  => 1+Nat::to_int(*x)
@@ -39,11 +38,22 @@ impl Nat {
             n => Nat::Nat(Box::new(Nat::from_int(n-1)))
         }
     }
+
+    fn to_list_string(self) -> String {
+        let mut data = self;
+        let mut string = String::new();
+        while let Nat::Nat(x) = data {
+            string.push_str("()");
+            data = *x;
+        }
+        string
+    }
 }
             
 
 fn main() {
     println!("{}", Nat::to_int(Nat::new(12)));
+    println!("{}", Nat::to_list_string(Nat::new(12)));
     println!("{}", Nat::new(5) == Nat::new(4));
 
 }
