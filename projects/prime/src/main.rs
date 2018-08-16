@@ -19,15 +19,17 @@ fn main() {
         },
     };
     let result = (1..number)
+        .into_par_iter()
         .all(|i| is_prime(i) == is_prime_2(i));
     println!("{}", result);
     
-    // let vec: Vec<_> = primes_til(number);
-    // let set: HashSet<_> = primes_til(number);
+    
     // println!("{:?} as Vec", vec);
     // println!("{:?} as HashSet", set);
-    // println!("Vec only primes? {}", vec.iter().all(|x| is_prime_2(*x)));
-    // println!("Set only primes? {}", set.iter().all(|x| is_prime_2(*x)));
+    let vec: Vec<_> = par_primes_til(number);
+    println!("Vec only primes? {}", vec.iter().all(|x| is_prime_2(*x)));
+    let set: HashSet<_> = primes_til(number);
+    println!("Set only primes? {}", set.iter().all(|x| is_prime_2(*x)));
     
     
 }
@@ -53,6 +55,16 @@ fn is_prime_2(u: u32) -> bool {
 }
 
 fn primes_til<A: FromIterator<u32>>(u: u32) -> A {
+    let mut v = vec![2];
+    for i in 3..u {
+        if v.iter().all(|x| i % x != 0) {
+            v.push(i);
+        }
+    }
+    v.into_iter().collect()
+}
+
+fn par_primes_til<A: FromIterator<u32>>(u: u32) -> A {
     let mut v = vec![2];
     for i in 3..u {
         if v.par_iter().all(|x| i % x != 0) {
