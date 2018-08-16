@@ -1,3 +1,9 @@
+#![allow(unused_imports, dead_code)]
+
+extern crate rayon;
+
+use rayon::prelude::*;
+
 use std::env;
 use std::iter::FromIterator;
 use std::collections::HashSet;
@@ -12,16 +18,16 @@ fn main() {
             Err(_) => DEFAULT_NUMBER,
         },
     };
-    for i in 1..number {
-        println!("{} is prime? {}", i, is_prime(i));
-        println!("{} is prime? {}", i, is_prime_2(i));
-    }
-    let vec: Vec<_> = primes_til(number);
-    let set: HashSet<_> = primes_til(number);
-    println!("{:?} as Vec", vec);
-    println!("{:?} as HashSet", set);
-    println!("Vec only primes? {}", vec.iter().all(|x| is_prime_2(*x)));
-    println!("Set only primes? {}", set.iter().all(|x| is_prime_2(*x)));
+    let result = (1..number)
+        .all(|i| is_prime(i) == is_prime_2(i));
+    println!("{}", result);
+    
+    // let vec: Vec<_> = primes_til(number);
+    // let set: HashSet<_> = primes_til(number);
+    // println!("{:?} as Vec", vec);
+    // println!("{:?} as HashSet", set);
+    // println!("Vec only primes? {}", vec.iter().all(|x| is_prime_2(*x)));
+    // println!("Set only primes? {}", set.iter().all(|x| is_prime_2(*x)));
     
     
 }
@@ -42,14 +48,14 @@ fn is_prime(u: u32) -> bool {
 fn is_prime_2(u: u32) -> bool {
     match u {
         0...1 => false,
-        _     => (2..u).all(|x| u % x != 0),
+        _     => (2..u).into_par_iter().all(|x| u % x != 0),
     }
 }
 
 fn primes_til<A: FromIterator<u32>>(u: u32) -> A {
     let mut v = vec![2];
     for i in 3..u {
-        if v.iter().all(|x| i % x != 0) {
+        if v.par_iter().all(|x| i % x != 0) {
             v.push(i);
         }
     }
