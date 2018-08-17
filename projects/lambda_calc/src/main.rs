@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-type Var = u32;
+type Var = char;
 
 #[derive(Clone, Debug, PartialEq)]
 enum Term {
@@ -19,9 +19,9 @@ impl Term {
             Lambda(v, t) => {
                 let var = format!("{}", v);
                 let term = t.show();
-                string.push_str("(lambda (");
+                string.push_str("(λ");
                 string.push_str(&var);
-                string.push_str(")");
+                string.push_str(".");
                 string.push_str(&term);
                 string.push_str(")");
             },
@@ -106,18 +106,23 @@ impl Term {
 
     fn zero() -> Term {
         use Term::*;
-        Lambda(1, Box::new(Lambda(0, Box::new(Var(0)))))
+        Lambda('f', Box::new(Lambda('i', Box::new(Var('i')))))
     }
 
     fn succ() -> Term {
         use Term::*;
-        Lambda(2,
-               Box::new(Lambda(3,
-                               Box::new(Lambda(4,
-                                               Box::new(App(Box::new(Var(3)),
-                                                            Box::new(App(Box::new(App(Box::new(Var(2)),
-                                                                                      Box::new(Var(3)))),
-                                                                         Box::new(Var(4)))))))))))
+        Lambda('n',
+               Box::new(Lambda('f',
+                               Box::new(Lambda('i',
+                                               Box::new(App(Box::new(Var('f')),
+                                                            Box::new(App(Box::new(App(Box::new(Var('n')),
+                                                                                      Box::new(Var('f')))),
+                                                                         Box::new(Var('i')))))))))))
+    }
+
+    fn inc(self) -> Term {
+        let succ = Term::succ();
+        Term::App(Box::new(succ), Box::new(self)).eval()
     }
         
 }
@@ -134,4 +139,6 @@ fn main() {
     let succ = Term::succ();
     let two  = App(Box::new(succ), Box::new(one)).eval();
     println!("{}", two.show());
+    let three = two.inc();
+    println!("{}", three.show());
 }
