@@ -10,6 +10,37 @@ enum Term {
 }
 
 impl Term {
+
+    fn show(&self) -> String {
+        use Term::*;
+        
+        let mut string = String::new();
+        match self {
+            Lambda(v, t) => {
+                let var = format!("{}", v);
+                let term = t.show();
+                string.push_str("(lambda (");
+                string.push_str(&var);
+                string.push_str(")");
+                string.push_str(&term);
+                string.push_str(")");
+            },
+            App(t, s) => {
+                let term_1 = t.show();
+                let term_2 = s.show();
+                string.push_str("(");
+                string.push_str(&term_1);
+                string.push_str(" ");
+                string.push_str(&term_2);
+                string.push_str(")");
+            },
+            Var(v) => {
+                let var = format!("{}", v);
+                string.push_str(&var);
+            },
+        }
+        string
+    }
     
     fn free(&mut self, v: Var) -> bool {
         match self {
@@ -102,5 +133,5 @@ fn main() {
     println!("{:?}", one);
     let succ = Term::succ();
     let two  = App(Box::new(succ), Box::new(one)).eval();
-    println!("{:?}", two);
+    println!("{}", two.show());
 }
