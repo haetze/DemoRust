@@ -1,6 +1,8 @@
+#![allow(dead_code)]
+
 type Var = u32;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 enum Term {
     Lambda(Var, Box<Term>),
     App(Box<Term>, Box<Term>),
@@ -36,27 +38,69 @@ impl Term {
         }
     }
 
-    fn onestep_eval(self) -> Term {
+    fn one_step_eval(self) -> Term {
         match self {
             Term::App(t, s) => {
                 match *t {
                     Term::Lambda(v, t) => t.replace_var(v, *s),
-                    t                  => panic!("Can't eval {:?}", t),
+                    t                  => Term::App(Box::new(t.one_step_eval()),
+                                                    Box::new(s.one_step_eval())),
                 }
             },
-            t               => panic!("Can't eval {:?}", t),   
+            Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval())),
+            Term::Var(v)               => Term::Var(v),
         }
     }
-    
+
+    fn n_step_eval(self, u: u32) -> Term {
+        let mut t = self;
+        for _ in 0..u {
+            t = t.one_step_eval();
+        }
+        t
+    }
+
+    fn eval(self) -> Term {
+        let mut t_1 = self;
+        let mut t_2     = t_1.clone();
+        loop {
+            t_1 = t_1.one_step_eval();
+            if t_1 == t_2 {
+                break;
+            }
+            t_2 = t_1.clone();
+        }
+        t_1
+    }
+
+    fn zero() -> Term {
+        use Term::*;
+        Lambda(1, Box::new(Lambda(0, Box::new(Var(0)))))
+    }
+
+    fn succ() -> Term {
+        use Term::*;
+        Lambda(2,
+               Box::new(Lambda(3,
+                               Box::new(Lambda(4,
+                                               Box::new(App(Box::new(Var(3)),
+                                                            Box::new(App(Box::new(App(Box::new(Var(2)),
+                                                                                      Box::new(Var(3)))),
+                                                                         Box::new(Var(4)))))))))))
+    }
+        
 }
 
 fn main() {
     use Term::*;
-    let var_0 = Box::new(Var(0));
-    let var_1 = Box::new(Var(1));
-    let lambda = Box::new(Lambda(0, var_0));
-    let exp = App(lambda, var_1);
-    println!("{:?}", exp);
-    let exp = exp.onestep_eval();
-    println!("{:?}", exp);
+    
+    let zero = Term::zero();
+    let succ = Term::succ();
+    let one  = App(Box::new(succ), Box::new(zero));
+    println!("{:?}", one);
+    let one = one.eval();
+    println!("{:?}", one);
+    let succ = Term::succ();
+    let two  = App(Box::new(succ), Box::new(one)).eval();
+    println!("{:?}", two);
 }
