@@ -1,6 +1,6 @@
 type Var = u32;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Term {
     Lambda(Var, Box<Term>),
     App(Box<Term>, Box<Term>),
@@ -35,9 +35,28 @@ impl Term {
 
         }
     }
+
+    fn onestep_eval(self) -> Term {
+        match self {
+            Term::App(t, s) => {
+                match *t {
+                    Term::Lambda(v, t) => t.replace_var(v, *s),
+                    t                  => panic!("Can't eval {:?}", t),
+                }
+            },
+            t               => panic!("Can't eval {:?}", t),   
+        }
+    }
     
 }
 
 fn main() {
-    println!("Hello, world!");
+    use Term::*;
+    let var_0 = Box::new(Var(0));
+    let var_1 = Box::new(Var(1));
+    let lambda = Box::new(Lambda(0, var_0));
+    let exp = App(lambda, var_1);
+    println!("{:?}", exp);
+    let exp = exp.onestep_eval();
+    println!("{:?}", exp);
 }
