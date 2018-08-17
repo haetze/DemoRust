@@ -141,4 +141,13 @@ fn main() {
     println!("{}", two.show());
     let three = two.inc();
     println!("{}", three.show());
+    let exp = three;
+    let exp = exp.inc();
+    println!("{}", exp.show());
+    let exp = exp.inc();
+    println!("{}", exp.show());
+    let exp = exp.inc();
+    println!("{}", exp.show());
+    let exp = exp.inc();
+    println!("{}", exp.show());
 }
