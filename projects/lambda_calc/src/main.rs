@@ -1,5 +1,9 @@
 #![allow(dead_code)]
 
+use std::io;
+use std::io::Write;
+use std::io::BufRead;
+
 type Var = char;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -194,11 +198,51 @@ impl Term {
         
 }
 
+
+fn handle_line(line: Result<String, std::io::Error>) -> bool{
+    
+    let mut stdout = io::stdout();
+
+    match line {
+        Ok(mut exp_string) => {
+            match exp_string.as_str() {
+                ":q" => {
+                    println!("Quitting..");
+                    return true;
+                },
+                _ => {
+                    match Term::read_term(&mut exp_string) {
+                        Err(()) => println!(">!>!>!>! Error"), 
+                        Ok(exp) => println!(">=>=>=>= {}", exp.eval().show()),
+                    };
+                },
+            }
+        },
+        Err(_) => panic!("Read Error"),
+    }
+    
+    print!("<=<=<=<= ");
+    stdout.flush().ok();
+    return false;
+}
+
+
+
 fn main() -> Result<(), ()>{
     use Term::*;
     
-    let mut x = "(λf.(λi.(f i)))".to_string();
-    let term = Term::read_term(&mut x)?;
-    println!("{}", term.show());
+    let stdin = io::stdin();
+
+    print!("<=<=<=<= ");
+    io::stdout().flush().ok();
+    
+    for line in stdin.lock().lines() {
+        
+        if handle_line(line) {
+            break;
+        }
+ 
+    }
     Ok(())
+
 }
