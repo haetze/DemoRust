@@ -124,30 +124,81 @@ impl Term {
         let succ = Term::succ();
         Term::App(Box::new(succ), Box::new(self)).eval()
     }
+
+    fn read_char(s: &mut String, c: char) -> Result<(), ()> {
+        if s.len() == 0 {
+            return Err(());
+        }
+        let head = s.remove(0);
+        if head == c {
+            return Ok(());
+        }
+        s.insert(0, head);
+        return Err(());
+
+    }
+
+    fn read_var(s: &mut String) -> Result<Term, ()>  {
+        if s.len() == 0 {
+            return Err(());
+        }
+        let head = s.remove(0);
+        if head.is_alphabetic() {
+            return Ok(Term::Var(head));
+        }
+        s.insert(0, head);
+        return Err(());
+    }
+
+    fn read_lambda(s: &mut String) -> Result<Term, ()> {
+        Term::read_char(s, '(')?;
+        match Term::read_char(s, 'λ') {
+            Err(_) => {
+                s.insert(0, '(');
+                return Err(());
+            },
+            _ => (),
+        };
+        if let Term::Var(var) = Term::read_var(s)? {
+            Term::read_char(s, '.')?;
+            let term = Term::read_term(s)?;
+            Term::read_char(s, ')')?;
+            return Ok(Term::Lambda(var, Box::new(term)));
+        }
+        return Err(());
+    }
+
+    fn read_app(s: &mut String) -> Result<Term, ()> {
+        Term::read_char(s, '(')?;
+        let t_1 = Term::read_term(s)?;
+        if s.len() == 0 {
+            return Err(());
+        }
+        Term::read_char(s, ' ')?;
+        let t_2 = Term::read_term(s)?;
+        Term::read_char(s, ')')?;
+        Ok(Term::App(Box::new(t_1), Box::new(t_2)))
+    }
+
+    fn read_term(s: &mut String) -> Result<Term, ()> {
+        if let Ok(Term::Var(v)) = Term::read_var(s) {
+            return Ok(Term::Var(v));
+        }
+        if let Ok(Term::Lambda(v, t)) = Term::read_lambda(s) {
+            return Ok(Term::Lambda(v, t));
+        }
+        Term::read_app(s)
+    }
+
+    
         
 }
 
-fn main() {
+fn main() -> Result<(), ()>{
     use Term::*;
     
-    let zero = Term::zero();
-    let succ = Term::succ();
-    let one  = App(Box::new(succ), Box::new(zero));
-    println!("{:?}", one);
-    let one = one.eval();
-    println!("{:?}", one);
-    let succ = Term::succ();
-    let two  = App(Box::new(succ), Box::new(one)).eval();
-    println!("{}", two.show());
-    let three = two.inc();
-    println!("{}", three.show());
-    let exp = three;
-    let exp = exp.inc();
-    println!("{}", exp.show());
-    let exp = exp.inc();
-    println!("{}", exp.show());
-    let exp = exp.inc();
-    println!("{}", exp.show());
-    let exp = exp.inc();
-    println!("{}", exp.show());
+    let mut x = "(λf.(λi.(f i)))".to_string();
+    let term = Term::read_term(&mut x)?;
+    println!("{}", term.show());
+    Ok(())
 }
