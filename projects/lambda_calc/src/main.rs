@@ -67,20 +67,28 @@ impl Term {
         }
     }
 
-    fn replace_var(self, v: Var, t: Term) -> Term {
+    fn replace_vars(self, map: &HashMap<Var, Term>) -> Term {
+        let mut term = self;
+        for (key, value) in map {
+            term = term.replace_var(*key, value);
+        }
+        return term;
+    }
+
+    fn replace_var(self, v: Var, t: &Term) -> Term {
         match self {
             Term::Lambda(u, s)       => {
                 if v != u {
-                    Term::Lambda(u, Box::new(s.replace_var(v, t)))
+                    Term::Lambda(u, Box::new(s.replace_var(v, &t.clone())))
                 } else {
                     Term::Lambda(u, s)
                 }
             },
             Term::App(s, u)              => {
-                Term::App(Box::new(s.replace_var(v, t.clone())),
-                          Box::new(u.replace_var(v, t)))
+                Term::App(Box::new(s.replace_var(v, &t.clone())),
+                          Box::new(u.replace_var(v, &t.clone())))
             },
-            Term::Var(u)       if v == u => t,
+            Term::Var(u)       if v == u => t.clone(),
             s                            => s,
 
         }
@@ -90,7 +98,7 @@ impl Term {
         match self {
             Term::App(t, s) => {
                 match *t {
-                    Term::Lambda(v, t) => t.replace_var(v, *s),
+                    Term::Lambda(v, t) => t.replace_var(v, &s),
                     t                  => Term::App(Box::new(t.one_step_eval()),
                                                     Box::new(s.one_step_eval())),
                 }
@@ -109,11 +117,11 @@ impl Term {
         t
     }
 
-    fn eval(self) -> Term {
+    fn eval(self, vars: &HashMap<Var, Term>) -> Term {
         let mut t_1 = self;
         let mut t_2     = t_1.clone();
         loop {
-            t_1 = t_1.one_step_eval();
+            t_1 = t_1.one_step_eval().replace_vars(vars);
             if t_1 == t_2 {
                 break;
             }
@@ -138,9 +146,9 @@ impl Term {
                                                                          Box::new(Var('i')))))))))))
     }
 
-    fn inc(self) -> Term {
+    fn inc(self, vars: &HashMap<Var, Term>) -> Term {
         let succ = Term::succ();
-        Term::App(Box::new(succ), Box::new(self)).eval()
+        Term::App(Box::new(succ), Box::new(self)).eval(vars)
     }
 
     fn read_char(s: &mut String, c: char) -> Result<(), ()> {
@@ -234,6 +242,7 @@ impl Term {
     
         
 }
+
 fn read_kind(mut st: String) -> Kind {
     if st.as_str() == ":q" {
         return Kind::Quit;
@@ -264,8 +273,11 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
                 },
                 Kind::Term(mut exp_string) => {
                     match Term::read_term(&mut exp_string) {
-                        Err(()) => println!(">!>!>!>! Error"), 
-                        Ok(exp) => println!(">=>=>=>= {}", exp.eval().show()),
+                        Err(()) => println!(">!>!>!>! Error"),
+                        Ok(exp) => {
+                            let exp = exp.eval(vars);
+                            println!(">=>=>=>= {}", exp.show())
+                        },
                     };
                 },
                 Kind::Set(mut st) => {
@@ -274,7 +286,7 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
                         match Term::read_term(&mut st) {
                             Err(()) => println!(">!>!>!>! Error in Term"), 
                             Ok(exp) => {
-                                let exp = exp.eval();
+                                let exp = exp.eval(vars);
                                 println!(">=>=>=>= {}", exp.show());
                                 vars.insert(var, exp);
                             },
