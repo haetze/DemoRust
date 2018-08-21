@@ -1,0 +1,6 @@
+(λf.(λi.(f i)))                   -- 1
+(λf.(λi.(f (f i))))               -- 2
+(λn.(λm.((m inc) n)))             -- add n to m, n is a real (i32 number), m is church-number
+:set add (λn.(λm.((m inc) n)))    -- set repl variable a
+:set zwei (λf.(λi.(f (f i))))     -- set repl variable z
+((add 12) zwei)                   -- should execute to 14
