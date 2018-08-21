@@ -3,14 +3,22 @@
 use std::io;
 use std::io::Write;
 use std::io::BufRead;
+use std::collections::HashMap;
 
 type Var = char;
+
+enum Kind {
+    Quit,
+    Term(String),
+    Set(String),
+}
 
 #[derive(Clone, Debug, PartialEq)]
 enum Term {
     Lambda(Var, Box<Term>),
     App(Box<Term>, Box<Term>),
     Var(Var),
+    Val(i32),
 }
 
 impl Term {
@@ -42,6 +50,10 @@ impl Term {
                 let var = format!("{}", v);
                 string.push_str(&var);
             },
+            Val(val) => {
+                let val = format!("{}", val);
+                string.push_str(&val);
+            }
         }
         string
     }
@@ -51,6 +63,7 @@ impl Term {
             Term::Lambda(u, t) => v != *u && t.free(v),
             Term::App(t, s)    => t.free(v) && s.free(v),
             Term::Var(u)       => v != *u,
+            Term::Val(_)       => true,
         }
     }
 
@@ -84,6 +97,7 @@ impl Term {
             },
             Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval())),
             Term::Var(v)               => Term::Var(v),
+            Term::Val(v)               => Term::Val(v),
         }
     }
 
@@ -154,6 +168,26 @@ impl Term {
         return Err(());
     }
 
+    fn read_val(s: &mut String) -> Result<Term, ()>  {
+        let mut st = String::new();
+        loop {
+            if s.len() == 0 {
+                break;
+            }
+            let head = s.remove(0);
+            if head.is_numeric() {
+                st.push(head);
+            } else {
+                s.insert(0, head);
+                break;
+            }
+        }
+        if st.len() == 0 {
+            return Err(());
+        }
+        return Ok(Term::Val(st.parse().unwrap()));
+    }
+
     fn read_lambda(s: &mut String) -> Result<Term, ()> {
         Term::read_char(s, '(')?;
         match Term::read_char(s, 'λ') {
@@ -185,6 +219,9 @@ impl Term {
     }
 
     fn read_term(s: &mut String) -> Result<Term, ()> {
+        if let Ok(Term::Val(v)) = Term::read_val(s) {
+            return Ok(Term::Val(v));
+        }
         if let Ok(Term::Var(v)) = Term::read_var(s) {
             return Ok(Term::Var(v));
         }
@@ -197,24 +234,54 @@ impl Term {
     
         
 }
+fn read_kind(mut st: String) -> Kind {
+    if st.as_str() == ":q" {
+        return Kind::Quit;
+    }
+    if st.as_str().starts_with(":set") {
+        st.remove(0);
+        st.remove(0);
+        st.remove(0);
+        st.remove(0);
+        st.remove(0);
+        return Kind::Set(st);
+    }
+    return Kind::Term(st);
+
+}
 
 
-fn handle_line(line: Result<String, std::io::Error>) -> bool{
+fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Term>) -> bool{
     
     let mut stdout = io::stdout();
 
     match line {
-        Ok(mut exp_string) => {
-            match exp_string.as_str() {
-                ":q" => {
+        Ok(exp_string) => {
+            match read_kind(exp_string) {
+                Kind::Quit => {
                     println!("Quitting..");
                     return true;
                 },
-                _ => {
+                Kind::Term(mut exp_string) => {
                     match Term::read_term(&mut exp_string) {
                         Err(()) => println!(">!>!>!>! Error"), 
                         Ok(exp) => println!(">=>=>=>= {}", exp.eval().show()),
                     };
+                },
+                Kind::Set(mut st) => {
+                    if let Ok(Term::Var(var)) = Term::read_var(&mut st) {
+                        st.remove(0);
+                        match Term::read_term(&mut st) {
+                            Err(()) => println!(">!>!>!>! Error in Term"), 
+                            Ok(exp) => {
+                                let exp = exp.eval();
+                                println!(">=>=>=>= {}", exp.show());
+                                vars.insert(var, exp);
+                            },
+                        };
+                    } else {
+                        println!(">!>!>!>! Error in Var");
+                    }
                 },
             }
         },
@@ -229,7 +296,7 @@ fn handle_line(line: Result<String, std::io::Error>) -> bool{
 
 
 fn main() -> Result<(), ()>{
-    use Term::*;
+    let mut vars: HashMap<Var, Term> = HashMap::new();
     
     let stdin = io::stdin();
 
@@ -238,11 +305,12 @@ fn main() -> Result<(), ()>{
     
     for line in stdin.lock().lines() {
         
-        if handle_line(line) {
+        if handle_line(line, &mut vars) {
             break;
         }
  
     }
+
     Ok(())
 
 }
