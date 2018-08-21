@@ -5,7 +5,7 @@ use std::io::Write;
 use std::io::BufRead;
 use std::collections::HashMap;
 
-type Var = char;
+type Var = String;
 
 enum Kind {
     Quit,
@@ -66,7 +66,7 @@ impl Term {
     fn free(&mut self, v: Var) -> bool {
         match self {
             Term::Lambda(u, t) => v != *u && t.free(v),
-            Term::App(t, s)    => t.free(v) && s.free(v),
+            Term::App(t, s)    => t.free(v.clone()) && s.free(v),
             Term::Var(u)       => v != *u,
             Term::Val(_)       => true,
             Term::Inc          => true,
@@ -77,7 +77,7 @@ impl Term {
     fn replace_vars(self, map: &HashMap<Var, Term>) -> Term {
         let mut term = self;
         for (key, value) in map {
-            term = term.replace_var(*key, value);
+            term = term.replace_var(key.clone(), value);
         }
         return term;
     }
@@ -92,10 +92,16 @@ impl Term {
                 }
             },
             Term::App(s, u)              => {
-                Term::App(Box::new(s.replace_var(v, &t.clone())),
-                          Box::new(u.replace_var(v, &t.clone())))
+                Term::App(Box::new(s.replace_var(v.clone(), &t.clone())),
+                          Box::new(u.replace_var(v.clone(), &t.clone())))
             },
-            Term::Var(u)       if v == u => t.clone(),
+            Term::Var(u)                 => {
+                if u == v {
+                    return t.clone();
+                } else {
+                    return Term::Var(u);
+                }
+            },
             s                            => s,
 
         }
@@ -105,7 +111,7 @@ impl Term {
         match self {
             Term::App(t, s) => {
                 match *t {
-                    Term::Lambda(v, t) => t.replace_var(v, &s),
+                    Term::Lambda(ref v, ref t) => t.clone().replace_var(v.clone(), &s),
                     Term::Inc          => {
                         match *s {
                             Term::Val(v) => Term::Val(v+1),
@@ -152,18 +158,20 @@ impl Term {
 
     fn zero() -> Term {
         use Term::*;
-        Lambda('f', Box::new(Lambda('i', Box::new(Var('i')))))
+        Lambda("f".to_string(),
+               Box::new(Lambda("i".to_string(),
+                               Box::new(Var("i".to_string())))))
     }
 
     fn succ() -> Term {
         use Term::*;
-        Lambda('n',
-               Box::new(Lambda('f',
-                               Box::new(Lambda('i',
-                                               Box::new(App(Box::new(Var('f')),
-                                                            Box::new(App(Box::new(App(Box::new(Var('n')),
-                                                                                      Box::new(Var('f')))),
-                                                                         Box::new(Var('i')))))))))))
+        Lambda("n".to_string(),
+               Box::new(Lambda("f".to_string(),
+                               Box::new(Lambda("i".to_string(),
+                                               Box::new(App(Box::new(Var("f".to_string())),
+                                                            Box::new(App(Box::new(App(Box::new(Var("n".to_string())),
+                                                                                      Box::new(Var("f".to_string())))),
+                                                                         Box::new(Var("i".to_string())))))))))))
     }
 
     fn inc(self, vars: &HashMap<Var, Term>) -> Term {
@@ -209,15 +217,24 @@ impl Term {
     }
 
     fn read_var(s: &mut String) -> Result<Term, ()>  {
-        if s.len() == 0 {
+        let mut st = String::new();
+        loop {
+            if s.len() == 0 {
+                break;
+            }
+            let head = s.remove(0);
+            if head.is_alphabetic() {
+                st.push(head);
+            } else {
+                s.insert(0, head);
+                break;
+            }
+        }
+        if st.len() == 0 {
             return Err(());
+        } else {
+            return Ok(Term::Var(st));
         }
-        let head = s.remove(0);
-        if head.is_alphabetic() {
-            return Ok(Term::Var(head));
-        }
-        s.insert(0, head);
-        return Err(());
     }
 
     fn read_val(s: &mut String) -> Result<Term, ()>  {
