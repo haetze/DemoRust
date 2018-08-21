@@ -184,17 +184,27 @@ impl Term {
 
     }
 
+    fn read_str(s: &mut String, st: &str) -> Result<(), ()> {
+        let mut read = String::new();
+        for i in st.chars() {
+            match Term::read_char(s, i) {
+                Ok(_) => read.push(i),
+                Err(_) => {
+                    s.insert_str(0, &read);
+                    return Err(());
+                },
+            }               
+        }
+        return Ok(());
+    }
+
     fn read_inc(s: &mut String) -> Result<Term, ()> {
-        Term::read_char(s, 'i')?;
-        Term::read_char(s, 'n')?;
-        Term::read_char(s, 'c')?;
+        Term::read_str(s, "inc")?;
         Ok(Term::Inc)
     }
 
     fn read_dec(s: &mut String) -> Result<Term, ()> {
-        Term::read_char(s, 'd')?;
-        Term::read_char(s, 'e')?;
-        Term::read_char(s, 'c')?;
+        Term::read_str(s, "dec")?;
         Ok(Term::Dec)
     }
 
