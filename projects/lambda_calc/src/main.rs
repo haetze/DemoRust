@@ -19,6 +19,8 @@ enum Term {
     App(Box<Term>, Box<Term>),
     Var(Var),
     Val(i32),
+    Inc,
+    Dec,
 }
 
 impl Term {
@@ -53,7 +55,10 @@ impl Term {
             Val(val) => {
                 let val = format!("{}", val);
                 string.push_str(&val);
-            }
+            },
+            Inc => string.push_str(&"inc"),
+            Dec => string.push_str(&"inc"),
+
         }
         string
     }
@@ -64,6 +69,8 @@ impl Term {
             Term::App(t, s)    => t.free(v) && s.free(v),
             Term::Var(u)       => v != *u,
             Term::Val(_)       => true,
+            Term::Inc          => true,
+            Term::Dec          => true,
         }
     }
 
@@ -99,13 +106,26 @@ impl Term {
             Term::App(t, s) => {
                 match *t {
                     Term::Lambda(v, t) => t.replace_var(v, &s),
+                    Term::Inc          => {
+                        match *s {
+                            Term::Val(v) => Term::Val(v+1),
+                            s            => Term::App(t,
+                                                      Box::new(s.one_step_eval())),
+                        }
+                    },
+                    Term::Dec          => {
+                        match *s {
+                            Term::Val(v) => Term::Val(v-1),
+                            s            => Term::App(t,
+                                                      Box::new(s.one_step_eval())),
+                        }
+                    },
                     t                  => Term::App(Box::new(t.one_step_eval()),
                                                     Box::new(s.one_step_eval())),
                 }
             },
             Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval())),
-            Term::Var(v)               => Term::Var(v),
-            Term::Val(v)               => Term::Val(v),
+            s                          => s,
         }
     }
 
@@ -162,6 +182,20 @@ impl Term {
         s.insert(0, head);
         return Err(());
 
+    }
+
+    fn read_inc(s: &mut String) -> Result<Term, ()> {
+        Term::read_char(s, 'i')?;
+        Term::read_char(s, 'n')?;
+        Term::read_char(s, 'c')?;
+        Ok(Term::Inc)
+    }
+
+    fn read_dec(s: &mut String) -> Result<Term, ()> {
+        Term::read_char(s, 'd')?;
+        Term::read_char(s, 'e')?;
+        Term::read_char(s, 'c')?;
+        Ok(Term::Dec)
     }
 
     fn read_var(s: &mut String) -> Result<Term, ()>  {
@@ -227,6 +261,12 @@ impl Term {
     }
 
     fn read_term(s: &mut String) -> Result<Term, ()> {
+        if let Ok(Term::Inc) = Term::read_inc(s) {
+            return Ok(Term::Inc);
+        }
+        if let Ok(Term::Dec) = Term::read_dec(s) {
+            return Ok(Term::Dec);
+        }
         if let Ok(Term::Val(v)) = Term::read_val(s) {
             return Ok(Term::Val(v));
         }
