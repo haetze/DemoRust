@@ -173,14 +173,6 @@ impl Term {
         }
     }
 
-    // fn n_step_eval(self, u: u32) -> Term {
-    //     let mut t = self;
-    //     for _ in 0..u {
-    //         t = t.one_step_eval();
-    //     }
-    //     t
-    // }
-
     fn eval(self, vars: &HashMap<Var, Term>) -> Term {
         let mut t_1 = self;
         let mut t_2     = t_1.clone();
@@ -287,7 +279,7 @@ impl Term {
                 break;
             }
             let head = s.remove(0);
-            if head.is_alphabetic() {
+            if !head.is_numeric() && !head.is_whitespace(){
                 st.push(head);
             } else {
                 s.insert(0, head);
