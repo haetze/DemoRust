@@ -29,6 +29,8 @@ enum Term {
     App(Box<Term>, Box<Term>),
     Var(Var),
     Val(i32),
+    Add,
+    Mult,
     Inc,
     Dec,
     Eq,
@@ -83,10 +85,12 @@ impl Term {
                 let val = format!("{}", val);
                 string.push_str(&val);
             },
-            Inc => string.push_str(&"inc"),
-            Dec => string.push_str(&"dec"),
-            Eq  => string.push_str(&"="),
-            GT  => string.push_str(&">"),
+            Inc  => string.push_str(&"inc"),
+            Dec  => string.push_str(&"dec"),
+            Eq   => string.push_str(&"="),
+            GT   => string.push_str(&">"),
+            Add  => string.push_str(&"+"),
+            Mult => string.push_str(&"*"),
 
         }
         string
@@ -99,6 +103,8 @@ impl Term {
             Term::Var(u)       => v != *u,
             Term::Val(_)       => true,
             Term::Inc          => true,
+            Term::Add          => true,
+            Term::Mult         => true,
             Term::Dec          => true,
             Term::Eq           => true,
             Term::GT           => true,
@@ -140,6 +146,8 @@ impl Term {
 
     fn one_step_eval(self, vars: &HashMap<Var, Term>) -> Term {
         match self {
+            Term::App(box Term::App(box Term::Add, box Term::Val(i)), box Term::Val(j)) => Term::Val(i + j),
+            Term::App(box Term::App(box Term::Mult, box Term::Val(i)), box Term::Val(j)) => Term::Val(i * j),
             Term::App(box Term::App(box Term::Eq, box Term::Val(i)), box Term::Val(j)) => {
                 if i == j {
                     return Term::true_func();
@@ -281,7 +289,15 @@ impl Term {
         Ok(Term::GT)
     }
 
+    fn read_add(s: &mut String) -> Result<Term, ()> {
+        Term::read_str(s, "+")?;
+        Ok(Term::Add)
+    }
 
+    fn read_mult(s: &mut String) -> Result<Term, ()> {
+        Term::read_str(s, "*")?;
+        Ok(Term::Mult)
+    }
 
     fn read_var(s: &mut String) -> Result<Term, ()>  {
         let mut st = String::new();
@@ -297,6 +313,8 @@ impl Term {
                 head != 'λ' &&
                 head != '=' &&
                 head != '>' &&
+                head != '+' &&
+                head != '*' &&
                 head != '.' {
                 st.push(head);
             } else {
@@ -373,6 +391,12 @@ impl Term {
         }
         if let Ok(Term::GT) = Term::read_gt(s) {
             return Ok(Term::GT);
+        }
+        if let Ok(Term::Add) = Term::read_add(s) {
+            return Ok(Term::Add);
+        }
+        if let Ok(Term::Mult) = Term::read_mult(s) {
+            return Ok(Term::Mult);
         }
         if let Ok(Term::Val(v)) = Term::read_val(s) {
             return Ok(Term::Val(v));

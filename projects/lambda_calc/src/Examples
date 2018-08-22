@@ -5,7 +5,5 @@
 :set zwei (λf.(λi.(f (f i))))     -- set repl variable z
 ((add 12) zwei)                   -- should execute to 14
 :set choice (λn.((((= n) 0) 10) 100)) -- example of boolean
-:set + (λn.(λm.((((= m) 0) n) ((+ (inc n)) (dec m)))))
-:set * (λn.(λm.((((= m) 0) 0) ((+ n) ((* n) (dec m))))))
 :set ! (λn.((((= n) 0) 1) ((* n) (! (dec n)))))
 :set id (λa.a)
