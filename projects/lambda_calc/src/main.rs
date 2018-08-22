@@ -17,6 +17,7 @@ type Var = String;
 
 enum Kind {
     Quit,
+    Reload,
     Term(String),
     Set(String),
 }
@@ -388,6 +389,9 @@ fn read_kind(mut st: String) -> Kind {
     if st.as_str() == ":q" {
         return Kind::Quit;
     }
+    if st.as_str() == ":r" {
+        return Kind::Reload;
+    }
     if st.as_str().starts_with(":set") {
         st.remove(0);
         st.remove(0);
@@ -401,7 +405,9 @@ fn read_kind(mut st: String) -> Kind {
 }
 
 
-fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Term>) -> bool{
+fn handle_line(line: Result<String, std::io::Error>,
+               vars: &mut HashMap<Var, Term>,
+               paths: &Vec<String>) -> bool {
     
     match line {
         Ok(exp_string) => {
@@ -409,6 +415,15 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
                 Kind::Quit => {
                     println!("Quitting..");
                     return true;
+                },
+                Kind::Reload => {
+                    println!("Reloading..");
+                    let mut map = HashMap::new();
+                    for path in paths.iter() {
+                        read_in_file(path, &mut map);
+                    }
+                    std::mem::swap(vars, &mut map);
+                    return false;
                 },
                 Kind::Term(mut exp_string) => {
                     match Term::read_term(&mut exp_string) {
@@ -441,17 +456,22 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
     return false;
 }
 
+fn read_in_file(path: &String, vars: &mut HashMap<Var, Term>) {
+    let file = File::open(path).expect("file not found");
+    let file = BufReader::new(&file);
+    for line in file.lines() {
+        handle_line(line, vars, &Vec::new());
+    }
+    
+}
 
 
 fn main() -> Result<(), ()>{
     let mut vars: HashMap<Var, Term> = HashMap::new();
-
-    for path in env::args().skip(1) {
-        let file = File::open(path).expect("file not found");
-        let mut file = BufReader::new(&file);
-        for line in file.lines() {
-            handle_line(line, &mut vars);
-        }
+    let paths: Vec<String>           = env::args().skip(1).collect();
+    
+    for path in &paths {
+        read_in_file(path, &mut vars);
     }
     
     let stdin = io::stdin();
@@ -461,7 +481,7 @@ fn main() -> Result<(), ()>{
     
     for line in stdin.lock().lines() {
         
-        if handle_line(line, &mut vars) {
+        if handle_line(line, &mut vars, &paths) {
             break;
         }
         print!("<=<=<=<= ");
