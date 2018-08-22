@@ -426,7 +426,7 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
                             Err(()) => println!(">!>!>!>! Error in Term"), 
                             Ok(exp) => {
                                 let exp = exp.eval(vars);
-                                println!(">=>=>=>= {}", exp.show());
+                                println!(">=>=>=>= :set {} <- {}", var, exp.show());
                                 vars.insert(var, exp);
                             },
                         };
