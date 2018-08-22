@@ -7,6 +7,11 @@ use std::io::Write;
 use std::io::BufRead;
 use std::collections::HashMap;
 use std::cmp::Ordering;
+use std::env;
+use std::fs::File;
+use std::io::BufReader;
+
+
 
 type Var = String;
 
@@ -398,8 +403,6 @@ fn read_kind(mut st: String) -> Kind {
 
 fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Term>) -> bool{
     
-    let mut stdout = io::stdout();
-
     match line {
         Ok(exp_string) => {
             match read_kind(exp_string) {
@@ -436,8 +439,6 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
         Err(_) => println!("Read Error"),
     }
     
-    print!("<=<=<=<= ");
-    stdout.flush().ok();
     return false;
 }
 
@@ -445,6 +446,14 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
 
 fn main() -> Result<(), ()>{
     let mut vars: HashMap<Var, Term> = HashMap::new();
+
+    for path in env::args().skip(1) {
+        let file = File::open(path).expect("file not found");
+        let mut file = BufReader::new(&file);
+        for line in file.lines() {
+            handle_line(line, &mut vars);
+        }
+    }
     
     let stdin = io::stdin();
 
@@ -456,6 +465,8 @@ fn main() -> Result<(), ()>{
         if handle_line(line, &mut vars) {
             break;
         }
+        print!("<=<=<=<= ");
+        io::stdout().flush().ok();
  
     }
 
