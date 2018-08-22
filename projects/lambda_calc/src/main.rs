@@ -4,6 +4,7 @@ use std::io;
 use std::io::Write;
 use std::io::BufRead;
 use std::collections::HashMap;
+use std::cmp::Ordering;
 
 type Var = String;
 
@@ -21,7 +22,24 @@ enum Term {
     Val(i32),
     Inc,
     Dec,
+    Eq,
+    GT,
 }
+
+impl PartialOrd for Term {
+    fn partial_cmp(&self, other: &Term) -> Option<Ordering> {
+        use Term::*;
+        
+        match *self {
+            Val(i) => match *other {
+                Val(j) => i.partial_cmp(&j),
+                _      => None,
+            },
+            _      => None,
+        }
+    }
+}
+
 
 impl Term {
 
@@ -58,6 +76,8 @@ impl Term {
             },
             Inc => string.push_str(&"inc"),
             Dec => string.push_str(&"inc"),
+            Eq  => string.push_str(&"="),
+            GT  => string.push_str(&">"),
 
         }
         string
@@ -71,6 +91,8 @@ impl Term {
             Term::Val(_)       => true,
             Term::Inc          => true,
             Term::Dec          => true,
+            Term::Eq           => true,
+            Term::GT           => true,
         }
     }
 
@@ -107,7 +129,7 @@ impl Term {
         }
     }
 
-    fn one_step_eval(self) -> Term {
+    fn one_step_eval(self, vars: &HashMap<Var, Term>) -> Term {
         match self {
             Term::App(t, s) => {
                 match *t {
@@ -116,38 +138,52 @@ impl Term {
                         match *s {
                             Term::Val(v) => Term::Val(v+1),
                             s            => Term::App(t,
-                                                      Box::new(s.one_step_eval())),
+                                                      Box::new(s.one_step_eval(vars))),
                         }
                     },
                     Term::Dec          => {
                         match *s {
                             Term::Val(v) => Term::Val(v-1),
                             s            => Term::App(t,
-                                                      Box::new(s.one_step_eval())),
+                                                      Box::new(s.one_step_eval(vars))),
                         }
                     },
-                    t                  => Term::App(Box::new(t.one_step_eval()),
-                                                    Box::new(s.one_step_eval())),
+                    Term::App(ref t, ref i) if **t == Term::Eq => {
+                        if i.clone().eval(vars) == s.clone().eval(vars) {
+                            return Term::true_func();
+                        }else {
+                            return Term::false_func();
+                        }
+                    },
+                    Term::App(ref t, ref i) if **t == Term::GT => {
+                        if i.clone().eval(vars) < s.clone().eval(vars) {
+                            return Term::true_func();
+                        }else {
+                            return Term::false_func();
+                        }
+                    },
+                    t                    => Term::App(Box::new(t.one_step_eval(vars)),                                                 
+                                                    Box::new(s.one_step_eval(vars))),
                 }
             },
-            Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval())),
+            Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval(vars))),
             s                          => s,
         }
     }
 
-    fn n_step_eval(self, u: u32) -> Term {
-        let mut t = self;
-        for _ in 0..u {
-            t = t.one_step_eval();
-        }
-        t
-    }
+    // fn n_step_eval(self, u: u32) -> Term {
+    //     let mut t = self;
+    //     for _ in 0..u {
+    //         t = t.one_step_eval();
+    //     }
+    //     t
+    // }
 
     fn eval(self, vars: &HashMap<Var, Term>) -> Term {
         let mut t_1 = self;
         let mut t_2     = t_1.clone();
         loop {
-            t_1 = t_1.one_step_eval().replace_vars(vars);
+            t_1 = t_1.one_step_eval(vars).replace_vars(vars);
             if t_1 == t_2 {
                 break;
             }
@@ -177,6 +213,20 @@ impl Term {
     fn inc(self, vars: &HashMap<Var, Term>) -> Term {
         let succ = Term::succ();
         Term::App(Box::new(succ), Box::new(self)).eval(vars)
+    }
+
+    fn true_func() -> Term {
+        use Term::*;
+        Lambda("x".to_string(),
+               Box::new(Lambda("y".to_string(),
+                               Box::new(Var("x".to_string())))))
+    }
+
+    fn false_func() -> Term {
+        use Term::*;
+        Lambda("x".to_string(),
+               Box::new(Lambda("y".to_string(),
+                               Box::new(Var("y".to_string())))))
     }
 
     fn read_char(s: &mut String, c: char) -> Result<(), ()> {
@@ -215,6 +265,18 @@ impl Term {
         Term::read_str(s, "dec")?;
         Ok(Term::Dec)
     }
+
+    fn read_eq(s: &mut String) -> Result<Term, ()> {
+        Term::read_str(s, "=")?;
+        Ok(Term::Eq)
+    }
+
+    fn read_gt(s: &mut String) -> Result<Term, ()> {
+        Term::read_str(s, ">")?;
+        Ok(Term::GT)
+    }
+
+
 
     fn read_var(s: &mut String) -> Result<Term, ()>  {
         let mut st = String::new();
@@ -293,6 +355,12 @@ impl Term {
         }
         if let Ok(Term::Dec) = Term::read_dec(s) {
             return Ok(Term::Dec);
+        }
+        if let Ok(Term::Eq) = Term::read_eq(s) {
+            return Ok(Term::Eq);
+        }
+        if let Ok(Term::GT) = Term::read_gt(s) {
+            return Ok(Term::GT);
         }
         if let Ok(Term::Val(v)) = Term::read_val(s) {
             return Ok(Term::Val(v));
