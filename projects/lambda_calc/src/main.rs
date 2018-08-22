@@ -432,7 +432,7 @@ fn handle_line(line: Result<String, std::io::Error>, vars: &mut HashMap<Var, Ter
                 },
             }
         },
-        Err(_) => panic!("Read Error"),
+        Err(_) => println!("Read Error"),
     }
     
     print!("<=<=<=<= ");
