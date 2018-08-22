@@ -279,7 +279,14 @@ impl Term {
                 break;
             }
             let head = s.remove(0);
-            if !head.is_numeric() && !head.is_whitespace(){
+            if  !head.is_numeric() &&
+                !head.is_whitespace() &&
+                head != '(' &&
+                head != ')' &&
+                head != 'λ' &&
+                head != '=' &&
+                head != '>' &&
+                head != '.' {
                 st.push(head);
             } else {
                 s.insert(0, head);
