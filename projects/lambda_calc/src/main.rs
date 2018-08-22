@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![feature(box_patterns)]
 
+extern crate rayon;
 
 use std::io;
 use std::io::Write;
@@ -83,7 +84,7 @@ impl Term {
                 string.push_str(&val);
             },
             Inc => string.push_str(&"inc"),
-            Dec => string.push_str(&"inc"),
+            Dec => string.push_str(&"dec"),
             Eq  => string.push_str(&"="),
             GT  => string.push_str(&">"),
 
@@ -170,8 +171,12 @@ impl Term {
                                                       Box::new(s.one_step_eval(vars))),
                         }
                     },
-                    t                    => Term::App(Box::new(t.one_step_eval(vars)),                                                 
-                                                    Box::new(s.one_step_eval(vars))),
+                    t                    => {
+                        let (t,s) = rayon::join(|| t.one_step_eval(vars),
+                                                || s.one_step_eval(vars));
+                        Term::App(Box::new(t),                                                 
+                                  Box::new(s))
+                    },
                 }
             },
             Term::Lambda(v, t)         => Term::Lambda(v, Box::new(t.one_step_eval(vars))),
