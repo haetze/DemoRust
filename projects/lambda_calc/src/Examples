@@ -4,4 +4,5 @@
 :set add (λn.(λm.((m inc) n)))    -- set repl variable a
 :set zwei (λf.(λi.(f (f i))))     -- set repl variable z
 ((add 12) zwei)                   -- should execute to 14
+:set choice (λn.((((= n) 0) 10) 100)) -- example of boolean
 :set add (λn.(λm.((((= m) 0) n) ((add (inc n)) (dec m)))))

@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+#![feature(box_patterns)]
+
 
 use std::io;
 use std::io::Write;
@@ -131,6 +133,20 @@ impl Term {
 
     fn one_step_eval(self, vars: &HashMap<Var, Term>) -> Term {
         match self {
+            Term::App(box Term::App(box Term::Eq, box Term::Val(i)), box Term::Val(j)) => {
+                if i == j {
+                    return Term::true_func();
+                } else {
+                    return Term::false_func();
+                }
+            },
+            Term::App(box Term::App(box Term::GT, box Term::Val(i)), box Term::Val(j)) => {
+                if i < j {
+                    return Term::true_func();
+                } else {
+                    return Term::false_func();
+                }
+            },
             Term::App(t, s) => {
                 match *t {
                     Term::Lambda(ref v, ref t) => t.clone().replace_var(v.clone(), &s),
@@ -146,20 +162,6 @@ impl Term {
                             Term::Val(v) => Term::Val(v-1),
                             s            => Term::App(t,
                                                       Box::new(s.one_step_eval(vars))),
-                        }
-                    },
-                    Term::App(ref t, ref i) if **t == Term::Eq => {
-                        if i.clone().eval(vars) == s.clone().eval(vars) {
-                            return Term::true_func();
-                        }else {
-                            return Term::false_func();
-                        }
-                    },
-                    Term::App(ref t, ref i) if **t == Term::GT => {
-                        if i.clone().eval(vars) < s.clone().eval(vars) {
-                            return Term::true_func();
-                        }else {
-                            return Term::false_func();
                         }
                     },
                     t                    => Term::App(Box::new(t.one_step_eval(vars)),                                                 
