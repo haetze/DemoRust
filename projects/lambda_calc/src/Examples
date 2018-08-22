@@ -5,7 +5,12 @@
 :set zwei (λf.(λi.(f (f i))))                   -- set repl variable z
 ((add 12) zwei)                                 -- should execute to 14
 :set choice (λn.((((= n) 0) 10) 100))           -- example of boolean
-:set ! (λn.((((= n) 0) 1) ((* n) (! (dec n))))) -- fakulty function
 :set not (λb.(λx.(λy.((b y) x))))               -- logical not
 :set neq (λn.(λm.(not ((= n) m))))              -- not equal
+:set ! (λn.((((= n) 0) 1) ((* n) (! (dec n))))) -- faculty function
+:set & (λa.(λb.(λx.(λy.((b ((a x) y)) y)))))    -- logical and
+((& ((= 1) 1)) ((neq 1) 0))                     -- and example
+:set | (λa.(λb.(λx.(λy.((a x) ((b x) y))))))    -- logical or
+:set zero_or_one (λn.((| ((= 0) n)) ((= 1) n))) -- or example
+:set fib (λn.(((zero_or_one n) 1) ((+ (fib (dec n))) (fib (dec (dec n))))))
 :set id (λa.a)                                  -- identity function
