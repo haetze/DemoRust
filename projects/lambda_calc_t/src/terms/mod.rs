@@ -2,6 +2,7 @@
 mod types;
 
 use terms::types::Type;
+use terms::types::TypeError;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -104,6 +105,65 @@ pub struct App{
     term: Box<Term>,
     t: Type,
 }
+
+impl App {
+    pub fn new(fun: Term, term: Term, context: &mut HashMap<String, Type>) -> Result<App, TypeError> {
+        let fun_t = fun.get_type().clone();
+        let term_t = term.get_type().clone();
+        match &fun_t {
+            Type::I32 => Err(TypeError::TypeNotApplicable(fun_t.clone())),
+            Type::Bool => Err(TypeError::TypeNotApplicable(fun_t.clone())),
+            Type::Var(_) => {
+                match fun {
+                    Term::Var(v) => {
+                        let t;
+                        loop {
+                            let mut smallest_available = 0;
+                            let mut available = true;
+                            for (_, v) in context.iter() {
+                                if let Type::Var(s) = v {
+                                    if *s == smallest_available {
+                                        available = false;
+                                        smallest_available = s + 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            if available {
+                                t = Type::Var(smallest_available);
+                                break;
+                            }
+                        }
+                        context.insert(v.var.clone(), Type::Arrow(Box::new(term_t),
+                                                                  Box::new(t.clone())));
+                        Ok(App {
+                            fun: Box::new(Term::Var(v)),
+                            term: Box::new(term),
+                            t: t,
+                        })
+                    },
+                    _ => Err(TypeError::Unkown),
+                }
+                        
+            },
+            Type::Arrow(t_1, t_2) => {
+                if term_t == **t_1 {
+                    Ok(App {
+                        fun: Box::new(fun),
+                        term: Box::new(term),
+                        t: (**t_2).clone(),
+                    })
+                    
+                } else {
+                    Err(TypeError::TypeMismatch(term_t, (**t_1).clone()))
+                }
+            },
+        }
+                             
+                
+    }
+}
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Term{
