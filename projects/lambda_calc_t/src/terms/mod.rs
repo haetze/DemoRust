@@ -3,6 +3,7 @@ pub mod types;
 use terms::types::Type;
 use terms::types::TypeError;
 use terms::types::Show;
+use std::collections::HashSet;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -457,7 +458,9 @@ pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
     return Ok(Term::ValI32(v));
 }
 
-pub fn read_lambda(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+pub fn read_lambda(s: &mut String,
+                   context: &mut HashMap<String, Type>,
+                   locals: &mut HashSet<String>) -> Result<Term, ()> {
     read_char(s, '(')?;
     match read_char(s, 'λ') {
         Err(_) => {
@@ -469,22 +472,33 @@ pub fn read_lambda(s: &mut String, context: &mut HashMap<String, Type>) -> Resul
     let mut context_new = context.clone();
     if let Term::Var(var) = read_var(s, &mut context_new, true)? {
         read_char(s, '.')?;
-        let term = read_term(s, &mut context_new)?;
+        locals.insert(var.var.clone());
+        let term = read_term(s, &mut context_new, locals)?;
+        for local in locals.iter() {
+            context.insert(local.clone(),
+                           context_new.get(local).unwrap().clone());
+        }
         read_char(s, ')')?;
+        let var = Var {
+            t: context_new.get(&var.var).unwrap().clone(),
+            var: var.var,
+        };
         let lambda = Lambda::new(var, term);
         return Ok(Term::Lambda(lambda));
     }
     return Err(());
 }
 
-pub fn read_app(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+pub fn read_app(s: &mut String,
+                context: &mut HashMap<String, Type>,
+                locals: &mut HashSet<String>) -> Result<Term, ()> {
     read_char(s, '(')?;
-    let t_1 = read_term(s, context)?;
+    let t_1 = read_term(s, context, locals)?;
     if s.len() == 0 {
         return Err(());
     }
     read_char(s, ' ')?;
-    let t_2 = read_term(s, context)?;
+    let t_2 = read_term(s, context, locals)?;
     read_char(s, ')')?;
     let app = App::new(t_1, t_2, context);
     match app {
@@ -493,7 +507,9 @@ pub fn read_app(s: &mut String, context: &mut HashMap<String, Type>) -> Result<T
     }
 }
 
-pub fn read_term(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+pub fn read_term(s: &mut String,
+                 context: &mut HashMap<String, Type>,
+                 locals: &mut HashSet<String>) -> Result<Term, ()> {
     if let Ok(Term::ValI32(v)) = read_val_i32(s) {
         return Ok(Term::ValI32(v));
     }
@@ -506,8 +522,8 @@ pub fn read_term(s: &mut String, context: &mut HashMap<String, Type>) -> Result<
     if let Ok(Term::Var(v)) = read_var(s, context, false) {
         return Ok(Term::Var(v));
     }
-    if let Ok(Term::Lambda(l)) = read_lambda(s, context) {
+    if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals) {
         return Ok(Term::Lambda(l));
     }
-    read_app(s, context)
+    read_app(s, context, locals)
 }

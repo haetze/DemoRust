@@ -35,7 +35,6 @@ impl Show for Type {
                 let mut string = String::new();
                 string.push_str("t_");
                 string.push_str(&format!("{}", i));
-                string.push_str(")");
                 string
             },
         }
