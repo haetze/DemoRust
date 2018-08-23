@@ -256,20 +256,13 @@ pub enum Term{
 
 impl Evaluate for Term {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        let r = self.clone();
-        loop {
-            let s = r.clone();
-            let r = match r.clone() {
+            match self {
                 Term::ValI32(v) => v.eval(context),
                 Term::ValBool(v) => v.eval(context),
                 Term::Var(v) => v.eval(context),
                 Term::Lambda(v) => v.eval(context),
                 Term::App(v) => v.eval(context),
-            };
-            if s == r {
-                return r;
             }
-        }
     }
 }
 
