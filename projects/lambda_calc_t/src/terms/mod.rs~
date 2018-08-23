@@ -1,0 +1,46 @@
+mod types;
+
+use terms::types::Type::*;
+
+#[derive(Debug, Clone, PartialEq)]
+struct ValI32 {
+    val: i32,
+    t: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct ValBool {
+    val: bool,
+    t: Type,
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+struct Var {
+    var: String,
+    t: Type
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct Lambda {
+    var : Var,
+    term: Term,
+    t: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct App<A, B> {
+    fun : Term,
+    term: Term,
+    t: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum Term{
+    ValI32(ValI32),
+    ValBool(ValBool),
+    Var(Var),
+    Lambda(Lambda),
+    App(App),
+}
+
