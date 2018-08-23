@@ -267,6 +267,18 @@ impl Term {
             }               
         }
         return Ok(());
+    }fn read_str(s: &mut String, st: &str) -> Result<(), ()> {
+        let mut read = String::new();
+        for i in st.chars() {
+            match Term::read_char(s, i) {
+                Ok(_) => read.push(i),
+                Err(_) => {
+                    s.insert_str(0, &read);
+                    return Err(());
+                },
+            }               
+        }
+        return Ok(());
     }
 
     fn read_inc(s: &mut String) -> Result<Term, ()> {

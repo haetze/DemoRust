@@ -9,38 +9,17 @@ use terms::types::Show;
 
 fn main() {
     let mut context = HashMap::new();
-    let var_1 = Var::new("x".to_string(), &mut context);
-    println!("Type of {:?}: {}", var_1.show(), var_1.get_type().show());
-    println!("{:?}", context);
-    
-    let var_2 = Var::new("y".to_string(), &mut context);
-    println!("Type of {:?}: {}", var_2.show(), var_2.get_type().show());
-    println!("{:?}", context);
-
-    let val_1 = ValI32::new(1);
-    println!("Type of {:?}: {}", val_1.show(), val_1.get_type().show());
-    println!("{:?}", context);
-
-    let app_1 = App::new(Term::Var(var_1.clone()), Term::Var(var_2.clone()), &mut context);
-    match app_1 {
-        Ok(app_1) => println!("Type of {:?}: {}", app_1.show(), app_1.get_type().show()),
-        Err(e)    => println!("{:?}", e),
+    let mut example_string = "x".to_string();
+    match read_term(&mut example_string, &mut context) {
+        Ok(exp) => println!("Type of {:?}: {}", exp.show(), exp.get_type().show()),
+        Err(_) => panic!("Error while reading"),
     }
-    println!("{:?}", context);
 
-    let lam_1 = Lambda::new(var_2.clone(), Term::ValI32(val_1.clone()));
-    println!("Type of {:?}: {}", lam_1.show(), lam_1.get_type().show());
-    println!("{:?}", context);
-
-    let app_2 = App::new(Term::Lambda(lam_1.clone()), Term::Var(var_2.clone()), &mut context);
-    match app_2 {
-        Ok(app_2) => {
-            println!("Type of {:?}: {}", app_2.show(), app_2.get_type().show());
-            let t = app_2.one_step(&mut HashMap::new());
-            println!("{}", t.show());
-        },
-        Err(e)    => println!("{:?}", e),
+    let mut context = HashMap::new();
+    let mut example_string = "(3 y)".to_string();
+    match read_term(&mut example_string, &mut context) {
+        Ok(exp) => println!("Type of {:?}: {}", exp.show(), exp.get_type().show()),
+        Err(_) => panic!("Error while reading"),
     }
-    println!("{:?}", context);
 
 }

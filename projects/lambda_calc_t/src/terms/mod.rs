@@ -21,7 +21,7 @@ impl ValI32 {
 }
 
 impl Evaluate for ValI32 {
-    fn one_step(self, _context: &mut HashMap<String, Term>) -> Term {
+    fn eval(self, _context: &mut HashMap<String, Term>) -> Term {
         Term::ValI32(self)
     }
 }
@@ -44,7 +44,7 @@ impl ValBool {
 }
 
 impl Evaluate for ValBool {
-    fn one_step(self, _context: &mut HashMap<String, Term>) -> Term {
+    fn eval(self, _context: &mut HashMap<String, Term>) -> Term {
         Term::ValBool(self)
     }
 }
@@ -94,7 +94,7 @@ impl Var {
 }
 
 impl Evaluate for Var {
-    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match context.get(&self.var) {
             Some(t) => t.clone(),
             None    => Term::Var(self),
@@ -126,10 +126,10 @@ impl Lambda {
 }
 
 impl Evaluate for Lambda {
-    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         Term::Lambda(Lambda {
             var: self.var,
-            term: box self.term.one_step(context),
+            term: box self.term.eval(context),
             t: self.t,
         })
     }
@@ -205,7 +205,7 @@ impl App {
 }
 
 impl Evaluate for App {
-    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match self {
             App{fun: box Term::Lambda(lambda),
                 term: box t,
@@ -215,7 +215,7 @@ impl Evaluate for App {
                 let term_fun = lambda.term;
                 let tmp_t = context.remove(&var.var.clone());
                 context.insert(var.var.clone(), t.clone());
-                let result = term_fun.one_step(context);
+                let result = term_fun.eval(context);
                 context.remove(&var.var.clone());
                 match tmp_t {
                     None => None,
@@ -227,8 +227,8 @@ impl Evaluate for App {
                 term: s,
                 t: typ} => {
                 
-                let result_t = t.one_step(context);
-                let result_s = s.one_step(context);
+                let result_t = t.eval(context);
+                let result_s = s.eval(context);
                 Term::App(App{
                     fun: box result_t,
                     term: box result_s,
@@ -250,13 +250,20 @@ pub enum Term{
 }
 
 impl Evaluate for Term {
-    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
-        match self {
-            Term::ValI32(v) => v.one_step(context),
-            Term::ValBool(v) => v.one_step(context),
-            Term::Var(v) => v.one_step(context),
-            Term::Lambda(v) => v.one_step(context),
-            Term::App(v) => v.one_step(context),
+    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
+        let r = self.clone();
+        loop {
+            let s = r.clone();
+            let r = match r.clone() {
+                Term::ValI32(v) => v.eval(context),
+                Term::ValBool(v) => v.eval(context),
+                Term::Var(v) => v.eval(context),
+                Term::Lambda(v) => v.eval(context),
+                Term::App(v) => v.eval(context),
+            };
+            if s == r {
+                return r;
+            }
         }
     }
 }
@@ -356,6 +363,148 @@ impl Show for Term {
 
 
 pub trait Evaluate {
-    fn one_step (self, context: &mut HashMap<String, Term>) -> Term;
+    fn eval (self, context: &mut HashMap<String, Term>) -> Term;
 }
 
+
+fn read_char(s: &mut String, c: char) -> Result<(), ()> {
+    if s.len() == 0 {
+        return Err(());
+    }
+    let head = s.remove(0);
+    if head == c {
+        return Ok(());
+    }
+    s.insert(0, head);
+    return Err(());   
+}
+
+fn read_str(s: &mut String, st: &str) -> Result<(), ()> {
+    let mut read = String::new();
+    for i in st.chars() {
+        match read_char(s, i) {
+            Ok(_) => read.push(i),
+            Err(_) => {
+                s.insert_str(0, &read);
+                return Err(());
+            },
+        }               
+    }
+    return Ok(());
+}
+
+pub fn read_true(s: &mut String) -> Result<Term, ()> {
+        read_str(s, "true")?;
+        Ok(Term::ValBool(ValBool::new(true)))
+}
+
+pub fn read_false(s: &mut String) -> Result<Term, ()> {
+        read_str(s, "false")?;
+        Ok(Term::ValBool(ValBool::new(false)))
+}
+
+pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()>  {
+    let mut st = String::new();
+    loop {
+        if s.len() == 0 {
+            break;
+        }
+        let head = s.remove(0);
+        if  !head.is_numeric() &&
+            !head.is_whitespace() &&
+            head != '(' &&
+            head != ')' &&
+            head != 'λ' &&
+            head != '=' &&
+            head != '>' &&
+            head != '+' &&
+            head != '*' &&
+            head != '.' {
+                st.push(head);
+            } else {
+                s.insert(0, head);
+                break;
+            }
+    }
+    if st.len() == 0 {
+        return Err(());
+    } else {
+        let v = Var::new(st, context);
+        return Ok(Term::Var(v));
+    }
+}
+
+pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
+    let mut st = String::new();
+    loop {
+        if s.len() == 0 {
+            break;
+        }
+        let head = s.remove(0);
+        if head.is_numeric() {
+            st.push(head);
+        } else {
+            s.insert(0, head);
+            break;
+        }
+    }
+    if st.len() == 0 {
+        return Err(());
+    }
+    let v = ValI32::new(st.parse().unwrap());
+    return Ok(Term::ValI32(v));
+}
+
+pub fn read_lambda(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+    read_char(s, '(')?;
+    match read_char(s, 'λ') {
+        Err(_) => {
+            s.insert(0, '(');
+            return Err(());
+        },
+        _ => (),
+    };
+    if let Term::Var(var) = read_var(s, context)? {
+        read_char(s, '.')?;
+        let term = read_term(s, context)?;
+        read_char(s, ')')?;
+        let lambda = Lambda::new(var, term);
+        return Ok(Term::Lambda(lambda));
+    }
+    return Err(());
+}
+
+pub fn read_app(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+    read_char(s, '(')?;
+    let t_1 = read_term(s, context)?;
+    if s.len() == 0 {
+        return Err(());
+    }
+    read_char(s, ' ')?;
+    let t_2 = read_term(s, context)?;
+    read_char(s, ')')?;
+    let app = App::new(t_1, t_2, context);
+    match app {
+        Ok(app) => Ok(Term::App(app)),
+        Err(_)  => Err(()),
+    }
+}
+
+pub fn read_term(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+    if let Ok(Term::ValI32(v)) = read_val_i32(s) {
+        return Ok(Term::ValI32(v));
+    }
+    if let Ok(Term::ValBool(v)) = read_true(s) {
+        return Ok(Term::ValBool(v));
+    }
+    if let Ok(Term::ValBool(v)) = read_false(s) {
+        return Ok(Term::ValBool(v));
+    }
+    if let Ok(Term::Var(v)) = read_var(s, context) {
+        return Ok(Term::Var(v));
+    }
+    if let Ok(Term::Lambda(l)) = read_lambda(s, context) {
+        return Ok(Term::Lambda(l));
+    }
+    read_app(s, context)
+}
