@@ -1,4 +1,3 @@
-
 pub mod types;
 
 use terms::types::Type;
@@ -21,6 +20,14 @@ impl ValI32 {
     }
 }
 
+impl Evaluate for ValI32 {
+    fn one_step(self, _context: &mut HashMap<String, Term>) -> Term {
+        Term::ValI32(self)
+    }
+}
+
+
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValBool {
     val: bool,
@@ -35,6 +42,13 @@ impl ValBool {
         }
     }
 }
+
+impl Evaluate for ValBool {
+    fn one_step(self, _context: &mut HashMap<String, Term>) -> Term {
+        Term::ValBool(self)
+    }
+}
+
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -79,6 +93,17 @@ impl Var {
     }
 }
 
+impl Evaluate for Var {
+    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+        match context.get(&self.var) {
+            Some(t) => t.clone(),
+            None    => Term::Var(self),
+        }   
+            
+    }
+}
+
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Lambda {
@@ -99,6 +124,18 @@ impl Lambda {
         }   
     }
 }
+
+impl Evaluate for Lambda {
+    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+        Term::Lambda(Lambda {
+            var: self.var,
+            term: box self.term.one_step(context),
+            t: self.t,
+        })
+    }
+}
+
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct App{
@@ -167,6 +204,41 @@ impl App {
     }
 }
 
+impl Evaluate for App {
+    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+        match self {
+            App{fun: box Term::Lambda(lambda),
+                term: box t,
+                t: _typ
+            } => {
+                let var = lambda.var;
+                let term_fun = lambda.term;
+                let tmp_t = context.remove(&var.var.clone());
+                context.insert(var.var.clone(), t.clone());
+                let result = term_fun.one_step(context);
+                context.remove(&var.var.clone());
+                match tmp_t {
+                    None => None,
+                    Some(term) => context.insert(var.var.clone(), term.clone()),
+                };
+                result
+            },
+            App{fun: t,
+                term: s,
+                t: typ} => {
+                
+                let result_t = t.one_step(context);
+                let result_s = s.one_step(context);
+                Term::App(App{
+                    fun: box result_t,
+                    term: box result_s,
+                    t:typ,
+                })
+            },
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Term{
@@ -176,6 +248,19 @@ pub enum Term{
     Lambda(Lambda),
     App(App),
 }
+
+impl Evaluate for Term {
+    fn one_step(self, context: &mut HashMap<String, Term>) -> Term {
+        match self {
+            Term::ValI32(v) => v.one_step(context),
+            Term::ValBool(v) => v.one_step(context),
+            Term::Var(v) => v.one_step(context),
+            Term::Lambda(v) => v.one_step(context),
+            Term::App(v) => v.one_step(context),
+        }
+    }
+}
+
 
 pub trait Typable {
     fn get_type(&self) -> &Type;
@@ -270,4 +355,7 @@ impl Show for Term {
 }
 
 
+pub trait Evaluate {
+    fn one_step (self, context: &mut HashMap<String, Term>) -> Term;
+}
 

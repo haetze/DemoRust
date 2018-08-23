@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-#![feature(box_patterns, box_notation)]
+#![feature(box_patterns, box_syntax)]
 
 use std::collections::HashMap;
 
@@ -32,9 +32,13 @@ fn main() {
     println!("Type of {:?}: {}", lam_1.show(), lam_1.get_type().show());
     println!("{:?}", context);
 
-    let app_2 = App::new(Term::Lambda(lam_1.clone()), Term::Var(var_1.clone()), &mut context);
+    let app_2 = App::new(Term::Lambda(lam_1.clone()), Term::Var(var_2.clone()), &mut context);
     match app_2 {
-        Ok(app_2) => println!("Type of {:?}: {}", app_2.show(), app_2.get_type().show()),
+        Ok(app_2) => {
+            println!("Type of {:?}: {}", app_2.show(), app_2.get_type().show());
+            let t = app_2.one_step(&mut HashMap::new());
+            println!("{}", t.show());
+        },
         Err(e)    => println!("{:?}", e),
     }
     println!("{:?}", context);
