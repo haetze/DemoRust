@@ -30,6 +30,13 @@ fn main() {
 
     let lam_1 = Lambda::new(var_2.clone(), Term::ValI32(val_1.clone()));
     println!("Type of {:?}: {}", lam_1.show(), lam_1.get_type().show());
-    
     println!("{:?}", context);
+
+    let app_2 = App::new(Term::Lambda(lam_1.clone()), Term::Var(var_1.clone()), &mut context);
+    match app_2 {
+        Ok(app_2) => println!("Type of {:?}: {}", app_2.show(), app_2.get_type().show()),
+        Err(e)    => println!("{:?}", e),
+    }
+    println!("{:?}", context);
+
 }
