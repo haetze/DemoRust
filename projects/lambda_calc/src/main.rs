@@ -194,7 +194,7 @@ impl Term {
 
     fn eval(self, vars: &HashMap<Var, Term>) -> Term {
         let mut t_1 = self;
-        let mut t_2     = t_1.clone();
+        let mut t_2 = t_1.clone();
         loop {
             t_1 = t_1.one_step_eval(vars).replace_vars(vars);
             if t_1 == t_2 {
