@@ -58,32 +58,37 @@ pub struct Var {
 }
 
 impl Var {
-    pub fn new(var: String, context: &mut HashMap<String, Type>) -> Var {
+    pub fn new(var: String, context: &mut HashMap<String, Type>, free: bool) -> Var {
 
-        let t;
-        if let Some(t_) = context.get(&var) {
-            t = t_.clone();
-        } else {
-            let mut smallest_available = 0;
-            loop {
-                let mut available = true;
-                for (_, v) in context.iter() {
-                    if let Type::Var(s) = v {
-                        if *s == smallest_available {
-                            available = false;
-                            smallest_available = s + 1;
-                            break;
-                        }
+        let mut t;
+        let mut smallest_available = 0;
+        loop {
+            let mut available = true;
+            for (_, v) in context.iter() {
+                if let Type::Var(s) = v {
+                    if *s == smallest_available {
+                        available = false;
+                        smallest_available = s + 1;
+                        break;
                     }
                 }
-                if available {
-                    t = Type::Var(smallest_available);
-                    break;
-                }
             }
-
+            if available {
+                t = Type::Var(smallest_available);
+                break;
+            }
+        }
+        if !free {
+            if let Some(t_) = context.get(&var)  {
+                t = t_.clone();
+            }
         }
 
+        if context.contains_key(&var) {
+            let val = context.remove(&var).unwrap();
+            let key = format!("{}{}", var, val.show());
+            context.insert(key, val);
+        }
         context.insert(var.clone(), t.clone());
                 
         Var {
@@ -403,7 +408,7 @@ pub fn read_false(s: &mut String) -> Result<Term, ()> {
         Ok(Term::ValBool(ValBool::new(false)))
 }
 
-pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()>  {
+pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>, free: bool) -> Result<Term, ()>  {
     let mut st = String::new();
     loop {
         if s.len() == 0 {
@@ -429,7 +434,7 @@ pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>) -> Result<T
     if st.len() == 0 {
         return Err(());
     } else {
-        let v = Var::new(st, context);
+        let v = Var::new(st, context, free);
         return Ok(Term::Var(v));
     }
 }
@@ -464,9 +469,10 @@ pub fn read_lambda(s: &mut String, context: &mut HashMap<String, Type>) -> Resul
         },
         _ => (),
     };
-    if let Term::Var(var) = read_var(s, context)? {
+    let mut context_new = context.clone();
+    if let Term::Var(var) = read_var(s, &mut context_new, true)? {
         read_char(s, '.')?;
-        let term = read_term(s, context)?;
+        let term = read_term(s, &mut context_new)?;
         read_char(s, ')')?;
         let lambda = Lambda::new(var, term);
         return Ok(Term::Lambda(lambda));
@@ -500,7 +506,7 @@ pub fn read_term(s: &mut String, context: &mut HashMap<String, Type>) -> Result<
     if let Ok(Term::ValBool(v)) = read_false(s) {
         return Ok(Term::ValBool(v));
     }
-    if let Ok(Term::Var(v)) = read_var(s, context) {
+    if let Ok(Term::Var(v)) = read_var(s, context, false) {
         return Ok(Term::Var(v));
     }
     if let Ok(Term::Lambda(l)) = read_lambda(s, context) {
