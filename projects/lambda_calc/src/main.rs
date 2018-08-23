@@ -497,6 +497,7 @@ fn handle_line(line: Result<String, std::io::Error>,
     return false;
 }
 
+
 fn read_in_file(path: &String, vars: &mut HashMap<Var, Term>) {
     let file = File::open(path).expect("file not found");
     let file = BufReader::new(&file);

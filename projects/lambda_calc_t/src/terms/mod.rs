@@ -58,6 +58,10 @@ pub struct Var {
 }
 
 impl Var {
+    pub fn get_var(&self) -> String {
+        self.var.clone()
+    }
+    
     pub fn new(var: String, context: &mut HashMap<String, Type>, free: bool) -> Var {
 
         let mut t;
