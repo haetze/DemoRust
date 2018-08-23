@@ -1,8 +1,9 @@
 
-mod types;
+pub mod types;
 
 use terms::types::Type;
 use terms::types::TypeError;
+use terms::types::Show;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,8 +50,8 @@ impl Var {
         if let Some(t_) = context.get(&var) {
             t = t_.clone();
         } else {
+            let mut smallest_available = 0;
             loop {
-                let mut smallest_available = 0;
                 let mut available = true;
                 for (_, v) in context.iter() {
                     if let Type::Var(s) = v {
@@ -115,10 +116,10 @@ impl App {
             Type::Bool => Err(TypeError::TypeNotApplicable(fun_t.clone())),
             Type::Var(_) => {
                 match fun {
-                    Term::Var(v) => {
+                    Term::Var(mut v) => {
                         let t;
+                        let mut smallest_available = 0;
                         loop {
-                            let mut smallest_available = 0;
                             let mut available = true;
                             for (_, v) in context.iter() {
                                 if let Type::Var(s) = v {
@@ -134,8 +135,10 @@ impl App {
                                 break;
                             }
                         }
-                        context.insert(v.var.clone(), Type::Arrow(Box::new(term_t),
-                                                                  Box::new(t.clone())));
+                        let t_ = Type::Arrow(Box::new(term_t),
+                                             Box::new(t.clone()));
+                        context.insert(v.var.clone(), t_.clone());
+                        v.t = t_;
                         Ok(App {
                             fun: Box::new(Term::Var(v)),
                             term: Box::new(term),
@@ -174,7 +177,7 @@ pub enum Term{
     App(App),
 }
 
-trait Typable {
+pub trait Typable {
     fn get_type(&self) -> &Type;
 }
 
@@ -219,5 +222,52 @@ impl Typable for Term {
         }
     }
 }
+
+impl Show for ValI32 {
+    fn show(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+impl Show for ValBool {
+    fn show(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+impl Show for Var {
+    fn show(&self) -> String {
+        format!("{}", self.var)
+    }
+}
+
+impl Show for Lambda {
+    fn show(&self) -> String {
+        format!("(λ{}.{})",
+                self.var.show(),
+                self.term.show())
+    }
+}
+
+impl Show for App {
+    fn show(&self) -> String {
+        format!("({} {})",
+                self.fun.show(),
+                self.term.show())
+    }
+}
+
+impl Show for Term {
+    fn show(&self) -> String {
+        match self {
+            Term::ValI32(v) => v.show(),
+            Term::ValBool(v) => v.show(),
+            Term::Var(v) => v.show(),
+            Term::Lambda(v) => v.show(),
+            Term::App(v) => v.show(),
+        }
+    }
+}
+
 
 

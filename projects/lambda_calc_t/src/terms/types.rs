@@ -6,13 +6,14 @@ pub enum Type {
     Var(u32),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum TypeError {
     TypeNotApplicable(Type),
     TypeMismatch(Type, Type),
     Unkown,
 }
 
-trait Show {
+pub trait Show {
     fn show(&self) -> String;
 }
 
