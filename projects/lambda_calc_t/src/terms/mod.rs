@@ -3,286 +3,26 @@ pub mod vali32;
 pub mod eval;
 pub mod typable;
 pub mod show;
+pub mod valbool;
+pub mod var;
+pub mod lambda;
+pub mod app;
+pub mod build_ins;
 
 use terms::types::Type;
-use terms::types::TypeError;
 use terms::show::Show;
 use terms::typable::Typable;
 use terms::eval::Evaluate;
+use terms::vali32::ValI32;
+use terms::valbool::ValBool;
+use terms::var::Var;
+use terms::lambda::Lambda;
+use terms::app::App;
+use terms::build_ins::BuildIns;
+
 use std::collections::HashSet;
 use std::collections::HashMap;
-use terms::vali32::ValI32;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct ValBool {
-    val: bool,
-    t: Type,
-}
-
-impl ValBool {
-    pub fn new(v: bool) -> ValBool {
-        ValBool {
-            val: v,
-            t: Type::Bool,
-        }
-    }
-}
-
-impl Evaluate for ValBool {
-    fn eval(self, _context: &mut HashMap<String, Term>) -> Term {
-        Term::ValBool(self)
-    }
-}
-
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Var {
-    var: String,
-    t: Type
-}
-
-impl Var {
-    pub fn get_var(&self) -> String {
-        self.var.clone()
-    }
-    
-    pub fn new(var: String, context: &mut HashMap<String, Type>, free: bool) -> Var {
-
-        let mut t;
-        let mut smallest_available = 0;
-        loop {
-            let mut available = true;
-            for (_, v) in context.iter() {
-                if let Type::Var(s) = v {
-                    if *s == smallest_available {
-                        available = false;
-                        smallest_available = s + 1;
-                        break;
-                    }
-                }
-            }
-            if available {
-                t = Type::Var(smallest_available);
-                break;
-            }
-        }
-        if !free {
-            if let Some(t_) = context.get(&var)  {
-                t = t_.clone();
-            }
-        }
-
-        if context.contains_key(&var) {
-            let val = context.remove(&var).unwrap();
-            let key = format!("{}{}", var, val.show());
-            context.insert(key, val);
-        }
-        context.insert(var.clone(), t.clone());
-                
-        Var {
-            var: var,
-            t: t,
-        }
-    }
-}
-
-impl Evaluate for Var {
-    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        match context.get(&self.var) {
-            Some(t) => t.clone(),
-            None    => Term::Var(self),
-        }   
-            
-    }
-}
-
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Lambda {
-    var : Var,
-    term: Box<Term>,
-    t: Type,
-}
-
-impl Lambda {
-    pub fn new(var: Var, term: Term) -> Lambda {
-        let var_t = Box::new(var.get_type().clone());
-        let term_t = Box::new(term.get_type().clone());
-        Lambda {
-            var: var,
-            term: Box::new(term),
-            t: Type::Arrow(var_t,
-                           term_t),
-        }   
-    }
-}
-
-impl Evaluate for Lambda {
-    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        Term::Lambda(Lambda {
-            var: self.var,
-            term: box self.term.eval(context),
-            t: self.t,
-        })
-    }
-}
-
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct App{
-    fun : Box<Term>,
-    term: Box<Term>,
-    t: Type,
-}
-
-impl App {
-    pub fn new(fun: Term, term: Term, context: &mut HashMap<String, Type>) -> Result<App, TypeError> {
-        let fun_t = fun.get_type().clone();
-        let term_t = term.get_type().clone();
-        match &fun_t {
-            Type::I32 => Err(TypeError::TypeNotApplicable(fun_t.clone())),
-            Type::Bool => Err(TypeError::TypeNotApplicable(fun_t.clone())),
-            Type::Var(_) => {
-                match fun {
-                    Term::Var(mut v) => {
-                        let t;
-                        let mut smallest_available = 0;
-                        loop {
-                            let mut available = true;
-                            for (_, v) in context.iter() {
-                                if let Type::Var(s) = v {
-                                    if *s == smallest_available {
-                                        available = false;
-                                        smallest_available = s + 1;
-                                        break;
-                                    }
-                                }
-                            }
-                            if available {
-                                t = Type::Var(smallest_available);
-                                break;
-                            }
-                        }
-                        let t_ = Type::Arrow(Box::new(term_t),
-                                             Box::new(t.clone()));
-                        context.insert(v.var.clone(), t_.clone());
-                        v.t = t_;
-                        Ok(App {
-                            fun: Box::new(Term::Var(v)),
-                            term: Box::new(term),
-                            t: t,
-                        })
-                    },
-                    _ => Err(TypeError::Unkown),
-                }
-                        
-            },
-            Type::Arrow(t_1, t_2) => {
-                if term_t == **t_1 {
-                    Ok(App {
-                        fun: Box::new(fun),
-                        term: Box::new(term),
-                        t: (**t_2).clone(),
-                    })
-                    
-                } else if let box Type::Var(i) = t_1 {
-                    Ok(App {
-                        fun: Box::new(fun),
-                        term: Box::new(term),
-                        t: (**t_2).clone().replace_var(*i, term_t.clone()),
-                    })
-                } else if let Type::Var(_) = term_t {
-                    match term {
-                        Term::Var(mut var) => {
-                            context.insert(var.var.clone(),
-                                           (**t_1).clone());
-                            var.t = (**t_1).clone();
-                            Ok(App {
-                                fun: Box::new(fun),
-                                term: Box::new(Term::Var(var)),
-                                t: (**t_2).clone(),
-                            })
-                        },
-                        Term::App(mut app) => {
-                            app.t = (**t_1).clone();
-                            Ok(App {
-                                fun: Box::new(fun),
-                                term: Box::new(Term::App(app)),
-                                t: (**t_2).clone(),
-                            })
-                        },
-                        Term::Lambda(mut lam) => {
-                            lam.t = (**t_1).clone();
-                            Ok(App {
-                                fun: Box::new(fun),
-                                term: Box::new(Term::Lambda(lam)),
-                                t: (**t_2).clone(),
-                            })
-                        },
-                        _   => Err(TypeError::TypeMismatch(term_t, (**t_1).clone())),
-                        
-                    }
-                    
-                }else {
-                    Err(TypeError::TypeMismatch(term_t, (**t_1).clone()))
-                }
-            },
-        }
-                             
-                
-    }
-}
-
-impl Evaluate for App {
-    fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        match self {
-            App{fun: box Term::BuildIn(b),
-                term: box t,
-                t: _typ
-            } => {
-                (b.to_fun()(t.eval(context))).eval(context)
-            },
-            App{fun: box Term::Lambda(lambda),
-                term: box t,
-                t: _typ
-            } => {
-                let var = lambda.var;
-                let term_fun = lambda.term;
-                let tmp_t = context.remove(&var.var.clone());
-                context.insert(var.var.clone(), t.clone());
-                let result = term_fun.eval(context);
-                context.remove(&var.var.clone());
-                match tmp_t {
-                    None => None,
-                    Some(term) => context.insert(var.var.clone(), term.clone()),
-                };
-                result
-            },
-            App{fun: t,
-                term: s,
-                t: typ} => {
-                
-                let result_t = t.clone().eval(context);
-                let result_s = s.clone().eval(context);
-                if result_t == *t && result_s == *s {
-                    return Term::App(App{
-                        fun: box result_t,
-                        term: box result_s,
-                        t:typ,
-                    });
-                }
-                Term::App(App{
-                    fun: box result_t,
-                    term: box result_s,
-                    t:typ,
-                }).eval(context)
-            },
-        }
-    }
-}
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -295,118 +35,6 @@ pub enum Term{
     BuildIn(BuildIns),
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum BuildIns {
-    Inc(Type),
-    Dec(Type),
-    Zerop(Type),
-    Eq2I(Type),
-    Eq1I(Type, i32),
-    Eq2B(Type),
-    Eq1B(Type, bool),
-    
-}
-
-impl BuildIns {
-    fn to_fun(self) -> Box<Fn(Term) -> Term> {
-        match self {
-            BuildIns::Eq2I(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValI32(v) => {
-                            let t = Type::Arrow(box Type::I32, box Type::Bool);
-                            let b = BuildIns::Eq1I(t, v.val);
-                            Term::BuildIn(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq1I(_, i) => {
-                box (move |t| {
-                    match t {
-                        Term::ValI32(v) => {
-                            let b = ValBool::new(i == v.val);
-                            Term::ValBool(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq2B(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValBool(v) => {
-                            let t = Type::Arrow(box Type::Bool, box Type::Bool);
-                            let b = BuildIns::Eq1B(t, v.val);
-                            Term::BuildIn(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq1B(_, i) => {
-                box (move |t| {
-                    match t {
-                        Term::ValBool(v) => {
-                            let b = ValBool::new(i == v.val);
-                            Term::ValBool(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Inc(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValI32(mut v) => {
-                            v.val = v.val + 1;
-                            Term::ValI32(v)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Dec(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValI32(mut v) => {
-                            v.val = v.val - 1;
-                            Term::ValI32(v)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Zerop(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValI32(v) => {
-                            let b  = ValBool::new(v.val == 0);
-                            Term::ValBool(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            
-        }
-    }
-}
-    
-impl Typable for BuildIns {
-    fn get_type(&self) -> &Type {
-        match self {
-            BuildIns::Inc(t) => t,
-            BuildIns::Dec(t) => t,
-            BuildIns::Zerop(t) => t,
-            BuildIns::Eq2I(t)  => t,
-            BuildIns::Eq1I(t,_)  => t,
-            BuildIns::Eq2B(t)  => t,
-            BuildIns::Eq1B(t,_)  => t,
-        }
-    }
-}
 
 
 impl Evaluate for Term {
@@ -423,32 +51,6 @@ impl Evaluate for Term {
 }
 
 
-
-
-impl Typable for ValBool {
-    fn get_type(&self) -> &Type {
-        &self.t
-    }
-}
-
-impl Typable for Var {
-    fn get_type(&self) -> &Type {
-        &self.t
-    }
-}
-
-impl Typable for Lambda {
-    fn get_type(&self) -> &Type {
-        &self.t
-    }
-}
-
-impl Typable for App {
-    fn get_type(&self) -> &Type {
-        &self.t
-    }
-}
-
 impl Typable for Term {
     fn get_type(&self) -> &Type {
         match self {
@@ -463,47 +65,13 @@ impl Typable for Term {
 }
 
 
-impl Show for ValBool {
-    fn show(&self) -> String {
-        format!("{}", self.val)
-    }
-}
 
-impl Show for Var {
-    fn show(&self) -> String {
-        format!("{}", self.var)
-    }
-}
 
-impl Show for Lambda {
-    fn show(&self) -> String {
-        format!("(λ{}.{})",
-                self.var.show(),
-                self.term.show())
-    }
-}
 
-impl Show for App {
-    fn show(&self) -> String {
-        format!("({} {})",
-                self.fun.show(),
-                self.term.show())
-    }
-}
 
-impl Show for BuildIns {
-    fn show(&self) -> String {
-        match self {
-            BuildIns::Inc(_) => "inc".to_string(),
-            BuildIns::Dec(_) => "dec".to_string(),
-            BuildIns::Zerop(_) => "zerop".to_string(),
-            BuildIns::Eq2I(_) => "=".to_string(),
-            BuildIns::Eq1I(_,t) => format!("{}=", t),
-            BuildIns::Eq2B(_) => "eq".to_string(),
-            BuildIns::Eq1B(_,t) => format!("{} eq", t),
-        }
-    }
-}
+
+
+
 
 impl Show for Term {
     fn show(&self) -> String {
