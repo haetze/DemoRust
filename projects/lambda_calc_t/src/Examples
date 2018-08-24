@@ -1,0 +1,2 @@
+:set add (λx.((+ x) 1))
+:set add (λx.(λy.((+ x) y)))
