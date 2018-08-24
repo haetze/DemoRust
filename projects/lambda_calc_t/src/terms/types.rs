@@ -6,6 +6,21 @@ pub enum Type {
     Var(u32),
 }
 
+impl Type {
+    pub fn replace_var(self, i: u32, t: Type) -> Type {
+        use Type::*;
+        match self {
+            I32 => I32,
+            Bool => Bool,
+            Arrow(t_, s_) => Arrow(box (*t_).replace_var(i, t.clone()),
+                                   box (*s_).replace_var(i, t.clone())),
+            Var(u) if u == i => t,
+            m  => m,
+        }
+                                                  
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum TypeError {
     TypeNotApplicable(Type),

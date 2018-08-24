@@ -204,6 +204,12 @@ impl App {
                         t: (**t_2).clone(),
                     })
                     
+                } else if let box Type::Var(i) = t_1 {
+                    Ok(App {
+                        fun: Box::new(fun),
+                        term: Box::new(term),
+                        t: (**t_2).clone().replace_var(*i, term_t.clone()),
+                    })
                 } else if let Type::Var(_) = term_t {
                     match term {
                         Term::Var(mut var) => {
@@ -492,7 +498,8 @@ pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
 
 pub fn read_lambda(s: &mut String,
                    context: &mut HashMap<String, Type>,
-                   locals: &mut HashSet<String>) -> Result<Term, ()> {
+                   locals: &mut HashSet<String>,
+                   vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
     read_char(s, '(')?;
     match read_char(s, 'λ') {
         Err(_) => {
@@ -505,7 +512,7 @@ pub fn read_lambda(s: &mut String,
     if let Term::Var(var) = read_var(s, &mut context_new, true)? {
         read_char(s, '.')?;
         locals.insert(var.var.clone());
-        let term = read_term(s, &mut context_new, locals)?;
+        let term = read_term(s, &mut context_new, locals, vars)?;
         for local in locals.iter() {
             context.insert(local.clone(),
                            context_new.get(local).unwrap().clone());
@@ -523,14 +530,15 @@ pub fn read_lambda(s: &mut String,
 
 pub fn read_app(s: &mut String,
                 context: &mut HashMap<String, Type>,
-                locals: &mut HashSet<String>) -> Result<Term, ()> {
+                locals: &mut HashSet<String>,
+                vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
     read_char(s, '(')?;
-    let mut t_1 = read_term(s, context, locals)?;
+    let mut t_1 = read_term(s, context, locals, vars)?;
     if s.len() == 0 {
         return Err(());
     }
     read_char(s, ' ')?;
-    let mut t_2 = read_term(s, context, locals)?;
+    let mut t_2 = read_term(s, context, locals, vars)?;
     read_char(s, ')')?;
     if let Term::Var(var) = t_1 {
         locals.insert(var.var.clone());
@@ -549,7 +557,8 @@ pub fn read_app(s: &mut String,
 
 pub fn read_term(s: &mut String,
                  context: &mut HashMap<String, Type>,
-                 locals: &mut HashSet<String>) -> Result<Term, ()> {
+                 locals: &mut HashSet<String>,
+                 vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
     
     if let Ok(Term::ValI32(v)) = read_val_i32(s) {
         return Ok(Term::ValI32(v));
@@ -561,16 +570,22 @@ pub fn read_term(s: &mut String,
         return Ok(Term::ValBool(v));
     }
     if let Ok(Term::Var(v)) = read_var(s, context, false) {
-        return Ok(correct(Term::Var(v), context));
+        match vars.get(&v.var) {
+            Some(t) => {
+                return Ok(t.clone());
+            },
+            None => {
+                return Ok(correct(Term::Var(v), context));
+            },
+        }
     }
-    if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals) {
+    if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals, vars) {
         return Ok(correct(Term::Lambda(l), context));
     }
-    read_app(s, context, locals).map(|x| correct(x, context))
+    read_app(s, context, locals, vars).map(|x| correct(x, context))
 }
 
 fn correct(term: Term, context: &mut HashMap<String, Type>) -> Term {
-    println!("{:?}", context);
     match term {
         Term::Var(mut var) => {
             var.t = context.get(&var.var).unwrap().clone();
