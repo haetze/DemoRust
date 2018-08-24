@@ -159,6 +159,14 @@ pub fn read_add(s: &mut String) -> Result<Term, ()> {
     Ok(Term::BuildIn(BuildIns::Add2(t)))
 }
 
+pub fn read_mult(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "*")?;
+    let t = Type::Arrow(box Type::I32,
+                        box Type::Arrow(box Type::I32,
+                                        box Type::I32));
+    Ok(Term::BuildIn(BuildIns::Mult2(t)))
+}
+
 pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
     if let Ok(t) = read_inc(s) {
         return Ok(t);
@@ -176,6 +184,9 @@ pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
         return Ok(t);
     }
     if let Ok(t) = read_add(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_mult(s) {
         return Ok(t);
     }
     Err(())
