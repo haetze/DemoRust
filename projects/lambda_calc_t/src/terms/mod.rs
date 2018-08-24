@@ -255,6 +255,12 @@ impl App {
 impl Evaluate for App {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match self {
+            App{fun: box Term::BuildIn(b),
+                term: box t,
+                t: _typ
+            } => {
+                (b.to_fun()(t.eval(context))).eval(context)
+            },
             App{fun: box Term::Lambda(lambda),
                 term: box t,
                 t: _typ
@@ -275,13 +281,20 @@ impl Evaluate for App {
                 term: s,
                 t: typ} => {
                 
-                let result_t = t.eval(context);
-                let result_s = s.eval(context);
+                let result_t = t.clone().eval(context);
+                let result_s = s.clone().eval(context);
+                if result_t == *t && result_s == *s {
+                    return Term::App(App{
+                        fun: box result_t,
+                        term: box result_s,
+                        t:typ,
+                    });
+                }
                 Term::App(App{
                     fun: box result_t,
                     term: box result_s,
                     t:typ,
-                })
+                }).eval(context)
             },
         }
     }
@@ -295,7 +308,94 @@ pub enum Term{
     Var(Var),
     Lambda(Lambda),
     App(App),
+    BuildIn(BuildIns),
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum BuildIns {
+    Inc(Type),
+    Dec(Type),
+    Zerop(Type),
+    Eq2I(Type),
+    Eq1I(Type, i32), 
+}
+
+impl BuildIns {
+    fn to_fun(self) -> Box<Fn(Term) -> Term> {
+        match self {
+            BuildIns::Eq2I(_) => {
+                box (|t| {
+                    match t {
+                        Term::ValI32(v) => {
+                            let t = Type::Arrow(box Type::I32, box Type::Bool);
+                            let b = BuildIns::Eq1I(t, v.val);
+                            Term::BuildIn(b)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Eq1I(_, i) => {
+                box (move |t| {
+                    match t {
+                        Term::ValI32(v) => {
+                            let b = ValBool::new(i == v.val);
+                            Term::ValBool(b)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Inc(_) => {
+                box (|t| {
+                    match t {
+                        Term::ValI32(mut v) => {
+                            v.val = v.val + 1;
+                            Term::ValI32(v)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Dec(_) => {
+                box (|t| {
+                    match t {
+                        Term::ValI32(mut v) => {
+                            v.val = v.val - 1;
+                            Term::ValI32(v)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Zerop(_) => {
+                box (|t| {
+                    match t {
+                        Term::ValI32(v) => {
+                            let b  = ValBool::new(v.val == 0);
+                            Term::ValBool(b)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            
+        }
+    }
+}
+    
+impl Typable for BuildIns {
+    fn get_type(&self) -> &Type {
+        match self {
+            BuildIns::Inc(t) => t,
+            BuildIns::Dec(t) => t,
+            BuildIns::Zerop(t) => t,
+            BuildIns::Eq2I(t)  => t,
+            BuildIns::Eq1I(t,_)  => t,
+        }
+    }
+}
+
 
 impl Evaluate for Term {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
@@ -305,6 +405,7 @@ impl Evaluate for Term {
                 Term::Var(v) => v.eval(context),
                 Term::Lambda(v) => v.eval(context),
                 Term::App(v) => v.eval(context),
+                t            => t,
             }
     }
 }
@@ -352,6 +453,7 @@ impl Typable for Term {
             Term::Var(v) => v.get_type(),
             Term::Lambda(v) => v.get_type(),
             Term::App(v) => v.get_type(),
+            Term::BuildIn(b) => b.get_type(),
         }
     }
 }
@@ -390,6 +492,18 @@ impl Show for App {
     }
 }
 
+impl Show for BuildIns {
+    fn show(&self) -> String {
+        match self {
+            BuildIns::Inc(_) => "inc".to_string(),
+            BuildIns::Dec(_) => "dec".to_string(),
+            BuildIns::Zerop(_) => "zerop".to_string(),
+            BuildIns::Eq2I(_) => "=".to_string(),
+            BuildIns::Eq1I(_,t) => format!("{}=", t),
+        }
+    }
+}
+
 impl Show for Term {
     fn show(&self) -> String {
         match self {
@@ -398,6 +512,7 @@ impl Show for Term {
             Term::Var(v) => v.show(),
             Term::Lambda(v) => v.show(),
             Term::App(v) => v.show(),
+            Term::BuildIn(b) => b.show(),
         }
     }
 }
@@ -435,14 +550,58 @@ fn read_str(s: &mut String, st: &str) -> Result<(), ()> {
 }
 
 pub fn read_true(s: &mut String) -> Result<Term, ()> {
-        read_str(s, "true")?;
-        Ok(Term::ValBool(ValBool::new(true)))
+    read_str(s, "true")?;
+    Ok(Term::ValBool(ValBool::new(true)))
 }
 
 pub fn read_false(s: &mut String) -> Result<Term, ()> {
-        read_str(s, "false")?;
-        Ok(Term::ValBool(ValBool::new(false)))
+    read_str(s, "false")?;
+    Ok(Term::ValBool(ValBool::new(false)))
 }
+
+pub fn read_inc(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "inc")?;
+    let t = Type::Arrow(box Type::I32, box Type::I32);
+    Ok(Term::BuildIn(BuildIns::Inc(t)))
+}
+
+pub fn read_dec(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "dec")?;
+    let t = Type::Arrow(box Type::I32, box Type::I32);
+    Ok(Term::BuildIn(BuildIns::Dec(t)))
+}
+
+pub fn read_zerop(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "zerop")?;
+    let t = Type::Arrow(box Type::I32, box Type::Bool);
+    Ok(Term::BuildIn(BuildIns::Zerop(t)))
+}
+
+pub fn read_eq(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "=")?;
+    let t = Type::Arrow(box Type::I32,
+                        box Type::Arrow(box Type::I32,
+                                        box Type::Bool));
+    Ok(Term::BuildIn(BuildIns::Eq2I(t)))
+}
+
+pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
+    if let Ok(t) = read_inc(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_dec(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_zerop(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_eq(s) {
+        return Ok(t);
+    }
+    Err(())
+}
+
+
 
 pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>, free: bool) -> Result<Term, ()>  {
     let mut st = String::new();
@@ -568,6 +727,9 @@ pub fn read_term(s: &mut String,
     }
     if let Ok(Term::ValBool(v)) = read_false(s) {
         return Ok(Term::ValBool(v));
+    }
+    if let Ok(Term::BuildIn(b)) = read_build_in(s) {
+        return Ok(Term::BuildIn(b));
     }
     if let Ok(Term::Var(v)) = read_var(s, context, false) {
         match vars.get(&v.var) {
