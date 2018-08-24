@@ -317,7 +317,10 @@ pub enum BuildIns {
     Dec(Type),
     Zerop(Type),
     Eq2I(Type),
-    Eq1I(Type, i32), 
+    Eq1I(Type, i32),
+    Eq2B(Type),
+    Eq1B(Type, bool),
+    
 }
 
 impl BuildIns {
@@ -339,6 +342,29 @@ impl BuildIns {
                 box (move |t| {
                     match t {
                         Term::ValI32(v) => {
+                            let b = ValBool::new(i == v.val);
+                            Term::ValBool(b)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Eq2B(_) => {
+                box (|t| {
+                    match t {
+                        Term::ValBool(v) => {
+                            let t = Type::Arrow(box Type::Bool, box Type::Bool);
+                            let b = BuildIns::Eq1B(t, v.val);
+                            Term::BuildIn(b)
+                        },
+                        t   => t,
+                    }
+                })
+            },
+            BuildIns::Eq1B(_, i) => {
+                box (move |t| {
+                    match t {
+                        Term::ValBool(v) => {
                             let b = ValBool::new(i == v.val);
                             Term::ValBool(b)
                         },
@@ -392,6 +418,8 @@ impl Typable for BuildIns {
             BuildIns::Zerop(t) => t,
             BuildIns::Eq2I(t)  => t,
             BuildIns::Eq1I(t,_)  => t,
+            BuildIns::Eq2B(t)  => t,
+            BuildIns::Eq1B(t,_)  => t,
         }
     }
 }
@@ -500,6 +528,8 @@ impl Show for BuildIns {
             BuildIns::Zerop(_) => "zerop".to_string(),
             BuildIns::Eq2I(_) => "=".to_string(),
             BuildIns::Eq1I(_,t) => format!("{}=", t),
+            BuildIns::Eq2B(_) => "eq".to_string(),
+            BuildIns::Eq1B(_,t) => format!("{} eq", t),
         }
     }
 }
@@ -585,6 +615,14 @@ pub fn read_eq(s: &mut String) -> Result<Term, ()> {
     Ok(Term::BuildIn(BuildIns::Eq2I(t)))
 }
 
+pub fn read_eq_b(s: &mut String) -> Result<Term, ()> {
+    read_str(s, "eq")?;
+    let t = Type::Arrow(box Type::Bool,
+                        box Type::Arrow(box Type::Bool,
+                                        box Type::Bool));
+    Ok(Term::BuildIn(BuildIns::Eq2B(t)))
+}
+
 pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
     if let Ok(t) = read_inc(s) {
         return Ok(t);
@@ -596,6 +634,9 @@ pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
         return Ok(t);
     }
     if let Ok(t) = read_eq(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_eq_b(s) {
         return Ok(t);
     }
     Err(())
