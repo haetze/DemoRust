@@ -1,3 +1,5 @@
+use terms::show::Show;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Arrow(Box<Type>, Box<Type>),
@@ -28,9 +30,6 @@ pub enum TypeError {
     Unkown,
 }
 
-pub trait Show {
-    fn show(&self) -> String;
-}
 
 impl Show for Type {
     fn show(&self) -> String {

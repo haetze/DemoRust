@@ -1,33 +1,17 @@
 pub mod types;
+pub mod vali32;
+pub mod eval;
+pub mod typable;
+pub mod show;
 
 use terms::types::Type;
 use terms::types::TypeError;
-use terms::types::Show;
+use terms::show::Show;
+use terms::typable::Typable;
+use terms::eval::Evaluate;
 use std::collections::HashSet;
 use std::collections::HashMap;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ValI32 {
-    val: i32,
-    t: Type,
-}
-
-impl ValI32 {
-    pub fn new(v: i32) -> ValI32 {
-        ValI32 {
-            val: v,
-            t: Type::I32,
-        }
-    }
-}
-
-impl Evaluate for ValI32 {
-    fn eval(self, _context: &mut HashMap<String, Term>) -> Term {
-        Term::ValI32(self)
-    }
-}
-
-
+use terms::vali32::ValI32;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValBool {
@@ -439,15 +423,7 @@ impl Evaluate for Term {
 }
 
 
-pub trait Typable {
-    fn get_type(&self) -> &Type;
-}
 
-impl Typable for ValI32 {
-    fn get_type(&self) -> &Type {
-        &self.t
-    }
-}
 
 impl Typable for ValBool {
     fn get_type(&self) -> &Type {
@@ -486,11 +462,6 @@ impl Typable for Term {
     }
 }
 
-impl Show for ValI32 {
-    fn show(&self) -> String {
-        format!("{}", self.val)
-    }
-}
 
 impl Show for ValBool {
     fn show(&self) -> String {
@@ -548,9 +519,6 @@ impl Show for Term {
 }
 
 
-pub trait Evaluate {
-    fn eval (self, context: &mut HashMap<String, Term>) -> Term;
-}
 
 
 fn read_char(s: &mut String, c: char) -> Result<(), ()> {
