@@ -204,7 +204,39 @@ impl App {
                         t: (**t_2).clone(),
                     })
                     
-                } else {
+                } else if let Type::Var(_) = term_t {
+                    match term {
+                        Term::Var(mut var) => {
+                            context.insert(var.var.clone(),
+                                           (**t_1).clone());
+                            var.t = (**t_1).clone();
+                            Ok(App {
+                                fun: Box::new(fun),
+                                term: Box::new(Term::Var(var)),
+                                t: (**t_2).clone(),
+                            })
+                        },
+                        Term::App(mut app) => {
+                            app.t = (**t_1).clone();
+                            Ok(App {
+                                fun: Box::new(fun),
+                                term: Box::new(Term::App(app)),
+                                t: (**t_2).clone(),
+                            })
+                        },
+                        Term::Lambda(mut lam) => {
+                            lam.t = (**t_1).clone();
+                            Ok(App {
+                                fun: Box::new(fun),
+                                term: Box::new(Term::Lambda(lam)),
+                                t: (**t_2).clone(),
+                            })
+                        },
+                        _   => Err(TypeError::TypeMismatch(term_t, (**t_1).clone())),
+                        
+                    }
+                    
+                }else {
                     Err(TypeError::TypeMismatch(term_t, (**t_1).clone()))
                 }
             },
@@ -493,13 +525,21 @@ pub fn read_app(s: &mut String,
                 context: &mut HashMap<String, Type>,
                 locals: &mut HashSet<String>) -> Result<Term, ()> {
     read_char(s, '(')?;
-    let t_1 = read_term(s, context, locals)?;
+    let mut t_1 = read_term(s, context, locals)?;
     if s.len() == 0 {
         return Err(());
     }
     read_char(s, ' ')?;
-    let t_2 = read_term(s, context, locals)?;
+    let mut t_2 = read_term(s, context, locals)?;
     read_char(s, ')')?;
+    if let Term::Var(var) = t_1 {
+        locals.insert(var.var.clone());
+        t_1 = Term::Var(var);
+    }
+    if let Term::Var(var) = t_2 {
+        locals.insert(var.var.clone());
+        t_2 = Term::Var(var);
+    }
     let app = App::new(t_1, t_2, context);
     match app {
         Ok(app) => Ok(Term::App(app)),
@@ -510,6 +550,7 @@ pub fn read_app(s: &mut String,
 pub fn read_term(s: &mut String,
                  context: &mut HashMap<String, Type>,
                  locals: &mut HashSet<String>) -> Result<Term, ()> {
+    
     if let Ok(Term::ValI32(v)) = read_val_i32(s) {
         return Ok(Term::ValI32(v));
     }
@@ -520,10 +561,34 @@ pub fn read_term(s: &mut String,
         return Ok(Term::ValBool(v));
     }
     if let Ok(Term::Var(v)) = read_var(s, context, false) {
-        return Ok(Term::Var(v));
+        return Ok(correct(Term::Var(v), context));
     }
     if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals) {
-        return Ok(Term::Lambda(l));
+        return Ok(correct(Term::Lambda(l), context));
     }
-    read_app(s, context, locals)
+    read_app(s, context, locals).map(|x| correct(x, context))
+}
+
+fn correct(term: Term, context: &mut HashMap<String, Type>) -> Term {
+    println!("{:?}", context);
+    match term {
+        Term::Var(mut var) => {
+            var.t = context.get(&var.var).unwrap().clone();
+            Term::Var(var)
+        },
+        Term::Lambda(lambda) => {
+            let mut var = lambda.var;
+            var.t = context.get(&var.var).unwrap().clone();
+            let term = correct(*lambda.term, context);
+            let lambda = Lambda::new(var, term);
+            Term::Lambda(lambda)
+        },
+        Term::App(app) => {
+            let f   = correct(*app.fun , context);
+            let t   = correct(*app.term, context);
+            let app = App::new(f, t, context).unwrap();
+            Term::App(app)
+        },
+        t => t,
+    }
 }
