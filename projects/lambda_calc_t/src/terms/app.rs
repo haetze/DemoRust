@@ -130,7 +130,7 @@ impl Evaluate for App {
                 t: _typ
             } => {
                 let t = t.eval(context);
-                let t = (b.to_fun()(t));
+                let t = b.to_fun()(t);
                 t.eval(context)
             },
             App{fun: box Term::Lambda(lambda),

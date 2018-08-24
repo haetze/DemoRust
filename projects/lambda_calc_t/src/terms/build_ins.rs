@@ -2,10 +2,12 @@ use terms::Term;
 use terms::types::Type;
 use terms::valbool::ValBool;
 use terms::vali32::ValI32;
-use terms::app::App;
+use terms::var::Var;
+use terms::lambda::Lambda;
 use terms::show::Show;
 use terms::typable::Typable;
 
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BuildIns {
@@ -20,7 +22,7 @@ pub enum BuildIns {
     Add1(Type, i32),
     Mult2(Type),
     Mult1(Type, i32),
-    
+    ITE(Type),
 }
 
 impl BuildIns {
@@ -69,6 +71,42 @@ impl BuildIns {
                             Term::ValBool(b)
                         },
                         t   => t,
+                    }
+                })
+            },
+            BuildIns::ITE(typ) => {
+                box (move |t| {
+                    let mut context = HashMap::new();
+                    if let Type::Arrow(box Type::Bool, box Type::Arrow(b, c)) = typ.clone() {
+                        match t {
+                            
+                            Term::ValBool(v) => {
+                                let mut var_x = Var::new("__x".to_string(),
+                                                         &mut context,
+                                                         true);
+                                let mut var_y = Var::new("__y".to_string(),
+                                                         &mut context,
+                                                         true);
+                                var_x.t = *b.clone();
+                                var_y.t = *c.clone();
+                                if v.val {
+                                    let lam = Lambda::new(var_y,
+                                                          Term::Var(var_x.clone()));
+                                    let lam = Lambda::new(var_x,
+                                                          Term::Lambda(lam));
+                                    return Term::Lambda(lam);
+                                } else {
+                                    let lam = Lambda::new(var_y.clone(),
+                                                          Term::Var(var_y));
+                                    let lam = Lambda::new(var_x,
+                                                          Term::Lambda(lam));
+                                    return Term::Lambda(lam);
+                                }
+                            },
+                            t   => t,
+                        }
+                    } else {
+                        panic!("Big Problem");
                     }
                 })
             },
@@ -170,6 +208,7 @@ impl Typable for BuildIns {
             BuildIns::Add1(t,_)  => t,
             BuildIns::Mult2(t)  => t,
             BuildIns::Mult1(t,_)  => t,
+            BuildIns::ITE(t)  => t,
 
         }
     }
@@ -189,6 +228,7 @@ impl Show for BuildIns {
             BuildIns::Add1(_,t) => format!("+{}", t),
             BuildIns::Mult2(_) => "*".to_string(),
             BuildIns::Mult1(_,t) => format!("*{}", t),
+            BuildIns::ITE(_) => format!("?"),
 
         }
     }

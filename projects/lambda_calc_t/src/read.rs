@@ -1,3 +1,5 @@
+use terms::types::free_type_var;
+
 fn read_char(s: &mut String, c: char) -> Result<(), ()> {
     if s.len() == 0 {
         return Err(());
@@ -84,7 +86,18 @@ pub fn read_mult(s: &mut String) -> Result<Term, ()> {
     Ok(Term::BuildIn(BuildIns::Mult2(t)))
 }
 
-pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
+pub fn read_ite(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
+    read_str(s, "if")?;
+    let typ = free_type_var(context);
+    let t = Type::Arrow(box Type::Bool,
+                        box Type::Arrow(box typ.clone(),
+                                        box typ.clone()));
+    Ok(Term::BuildIn(BuildIns::ITE(t)))
+}
+
+
+pub fn read_build_in(s: &mut String,
+                     context: &mut HashMap<String, Type>) -> Result<Term, ()> {
     if let Ok(t) = read_inc(s) {
         return Ok(t);
     }
@@ -104,6 +117,9 @@ pub fn read_build_in(s: &mut String) -> Result<Term, ()> {
         return Ok(t);
     }
     if let Ok(t) = read_mult(s) {
+        return Ok(t);
+    }
+    if let Ok(t) = read_ite(s, context) {
         return Ok(t);
     }
     Err(())
@@ -236,7 +252,7 @@ pub fn read_term(s: &mut String,
     if let Ok(Term::ValBool(v)) = read_false(s) {
         return Ok(Term::ValBool(v));
     }
-    if let Ok(Term::BuildIn(b)) = read_build_in(s) {
+    if let Ok(Term::BuildIn(b)) = read_build_in(s, context) {
         return Ok(Term::BuildIn(b));
     }
     if let Ok(Term::Var(v)) = read_var(s, context, false) {

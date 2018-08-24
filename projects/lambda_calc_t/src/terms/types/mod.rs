@@ -1,6 +1,8 @@
 pub mod type_error;
 
+
 use terms::show::Show;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
@@ -26,6 +28,7 @@ impl Type {
 }
 
 
+
 impl Show for Type {
     fn show(&self) -> String {
         match self {
@@ -49,4 +52,27 @@ impl Show for Type {
         }
     }
 
+}
+
+pub fn free_type_var(context: &mut HashMap<String, Type>) -> Type{
+    let t;
+    let mut smallest_available = 0;
+    loop {
+        let mut available = true;
+        for (_, v) in context.iter() {
+            if let Type::Var(s) = v {
+                if *s == smallest_available {
+                    available = false;
+                    smallest_available = s + 1;
+                    break;
+                }
+            }
+        }
+        if available {
+            t = Type::Var(smallest_available);
+            break;
+        }
+    }
+    return t;
+    
 }
