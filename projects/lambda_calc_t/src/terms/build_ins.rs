@@ -2,6 +2,7 @@ use terms::Term;
 use terms::types::Type;
 use terms::valbool::ValBool;
 use terms::vali32::ValI32;
+use terms::app::App;
 use terms::show::Show;
 use terms::typable::Typable;
 

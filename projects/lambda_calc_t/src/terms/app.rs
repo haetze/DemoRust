@@ -116,10 +116,22 @@ impl Evaluate for App {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match self {
             App{fun: box Term::BuildIn(b),
+                term: box Term::Var(v),
+                t: typ
+            } => {
+                Term::App(App {
+                    fun: box Term::BuildIn(b),
+                    term: box Term::Var(v).eval(context),
+                    t: typ,
+                })
+            },
+            App{fun: box Term::BuildIn(b),
                 term: box t,
                 t: _typ
             } => {
-                (b.to_fun()(t.eval(context))).eval(context)
+                let t = t.eval(context);
+                let t = (b.to_fun()(t));
+                t.eval(context)
             },
             App{fun: box Term::Lambda(lambda),
                 term: box t,
