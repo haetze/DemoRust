@@ -44,7 +44,7 @@ impl Evaluate for Term {
                 Term::Var(v) => v.eval(context),
                 Term::Lambda(v) => v.eval(context),
                 Term::App(v) => v.eval(context),
-                t            => t,
+                Term::BuildIn(v) => v.eval(context),
         }
     }
 }

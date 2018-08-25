@@ -3,7 +3,10 @@ use terms::types::Type;
 use terms::valbool::ValBool;
 use terms::vali32::ValI32;
 use terms::show::Show;
+use terms::eval::Evaluate;
 use terms::typable::Typable;
+
+use std::collections::HashMap;
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,9 +19,11 @@ pub enum BuildIns {
     Eq2B(Type),
     Eq1B(Type, bool),
     Add2(Type),
-    Add1(Type, i32),
+    Add1(Type, Box<Term>),
+    Add0(Type, Box<Term>, Box<Term>),
     Mult2(Type),
-    Mult1(Type, i32),
+    Mult1(Type, Box<Term>),
+    Mult0(Type, Box<Term>, Box<Term>),
     ITE3(Type),
     ITE2(Type, bool),
     ITE1(Type, bool, Box<Term>),
@@ -114,46 +119,46 @@ impl BuildIns {
             BuildIns::Add2(_) => {
                 box (|t| {
                     match t {
-                        Term::ValI32(v) => {
-                            let t = Type::Arrow(box Type::I32, box Type::I32);
-                            let b = BuildIns::Add1(t, v.val);
+                        t => {
+                            let typ = Type::Arrow(box Type::I32, box Type::I32);
+                            let b = BuildIns::Add1(typ, box t);
                             Term::BuildIn(b)
                         },
-                        t   => t,
                     }
                 })
             },
             BuildIns::Add1(_, i) => {
                 box (move |t| {
                     match t {
-                        Term::ValI32(v) => {
-                            let b = ValI32::new(i + v.val);
-                            Term::ValI32(b)
+                        t   => {
+                            let b = BuildIns::Add0(Type::I32,
+                                                   i.clone(),
+                                                   box t);
+                            Term::BuildIn(b)
                         },
-                        t   => t,
                     }
                 })
             },
             BuildIns::Mult2(_) => {
                 box (|t| {
                     match t {
-                        Term::ValI32(v) => {
-                            let t = Type::Arrow(box Type::I32, box Type::I32);
-                            let b = BuildIns::Mult1(t, v.val);
+                        t => {
+                            let typ = Type::Arrow(box Type::I32, box Type::I32);
+                            let b = BuildIns::Mult1(typ, box t);
                             Term::BuildIn(b)
                         },
-                        t   => t,
                     }
                 })
             },
             BuildIns::Mult1(_, i) => {
                 box (move |t| {
                     match t {
-                        Term::ValI32(v) => {
-                            let b = ValI32::new(i * v.val);
-                            Term::ValI32(b)
+                        t => {
+                            let b = BuildIns::Mult0(Type::I32,
+                                                   i.clone(),
+                                                   box t);
+                            Term::BuildIn(b)
                         },
-                        t   => t,
                     }
                 })
             },
@@ -190,6 +195,10 @@ impl BuildIns {
                     }
                 })
             },
+
+            t => {
+                box (move |_| Term::BuildIn(t.clone()))
+            },
             
         }
     }
@@ -207,8 +216,10 @@ impl Typable for BuildIns {
             BuildIns::Eq1B(t,_)  => t,
             BuildIns::Add2(t)  => t,
             BuildIns::Add1(t,_)  => t,
+            BuildIns::Add0(t,_,_)  => t,
             BuildIns::Mult2(t)  => t,
             BuildIns::Mult1(t,_)  => t,
+            BuildIns::Mult0(t,_,_)  => t,
             BuildIns::ITE3(t)  => t,
             BuildIns::ITE2(t,_)  => t,
             BuildIns::ITE1(t,_,_)  => t,
@@ -228,13 +239,87 @@ impl Show for BuildIns {
             BuildIns::Eq2B(_) => "eq".to_string(),
             BuildIns::Eq1B(_,t) => format!("{} eq", t),
             BuildIns::Add2(_) => "+".to_string(),
-            BuildIns::Add1(_,t) => format!("+{}", t),
+            BuildIns::Add1(_,t) => format!("+{}", t.show()),
+            BuildIns::Add0(_,t,s) => format!("{}+{}", t.show(), s.show()),
             BuildIns::Mult2(_) => "*".to_string(),
-            BuildIns::Mult1(_,t) => format!("*{}", t),
+            BuildIns::Mult1(_,t) => format!("*{}", t.show()),
+            BuildIns::Mult0(_,t,s) => format!("{}*{}", t.show(), s.show()),
             BuildIns::ITE3(_) => format!("if"),
             BuildIns::ITE2(_, b) => format!("if {}", b),
             BuildIns::ITE1(_, b, t) => format!("if {} then {}", b, t.show()),
 
         }
+    }
+}
+
+impl Evaluate for BuildIns {
+    fn eval(self, context: &mut HashMap<String, Term>) -> Term{
+        match self {
+            BuildIns::Mult0(_,
+                            box Term::ValI32(a),
+                            box Term::ValI32(b)) => Term::ValI32(ValI32::new(a.val * b.val)),
+            BuildIns::Add0(_,
+                           box Term::ValI32(a),
+                           box Term::ValI32(b)) => Term::ValI32(ValI32::new(a.val + b.val)),
+            BuildIns::Add0(t,
+                           mut a,
+                           mut b) => {
+                loop {
+                    let a_ = a.clone();
+                    a = box a.eval(context);
+                    if a == a_ {
+                        break;
+                    }
+                }
+
+                loop {
+                    let b_ = b.clone();
+                    b = box b.eval(context);
+                    if b == b_ {
+                        break;
+                    }
+                }
+
+                if let Term::ValI32(v) = *a.clone() {
+                    if let Term::ValI32(w) = *b.clone() {
+                        return Term::ValI32(ValI32::new(v.val + w.val));
+                    }
+                }       
+                Term::BuildIn(BuildIns::Add0(t,
+                                             a,
+                                             b))
+            },
+            BuildIns::Mult0(t,
+                           mut a,
+                           mut b) => {
+                loop {
+                    let a_ = a.clone();
+                    a = box a.eval(context);
+                    if a == a_ {
+                        break;
+                    }
+                }
+
+                loop {
+                    let b_ = b.clone();
+                    b = box b.eval(context);
+                    if b == b_ {
+                        break;
+                    }
+                }
+
+                if let Term::ValI32(v) = *a.clone() {
+                    if let Term::ValI32(w) = *b.clone() {
+                        return Term::ValI32(ValI32::new(v.val * w.val));
+                    }
+                }       
+
+                Term::BuildIn(BuildIns::Mult0(t,
+                                             a,
+                                             b))
+            },
+            t => Term::BuildIn(t),
+        }
+         
     }
 }

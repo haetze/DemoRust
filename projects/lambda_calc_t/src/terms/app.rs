@@ -180,7 +180,6 @@ impl Evaluate for App {
                 term: box Term::Var(v),
                 t: typ
             } => {
-
                 let v_ = Term::Var(v.clone()).eval(context);
                 let w_ = Term::Var(v.clone());
                 if v_ != w_ {
@@ -226,7 +225,6 @@ impl Evaluate for App {
             App{fun: t,
                 term: s,
                 t: typ} => {
-
                 let result_t = t.clone().eval(context);
                 let result_s = *s.clone();
                 if result_t == *t {
