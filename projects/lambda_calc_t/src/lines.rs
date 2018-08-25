@@ -18,12 +18,19 @@ enum Kind {
     Reload,
     Term(String),
     Set(String),
+    Type(String),
 }
 
 
 fn read_kind(mut st: String) -> Kind {
     if st.as_str() == ":q" {
         return Kind::Quit;
+    }
+    if st.as_str().starts_with(":t") {
+        st.remove(0);
+        st.remove(0);
+        st.remove(0);
+        return Kind::Type(st);
     }
     if st.as_str() == ":r" {
         return Kind::Reload;
@@ -52,6 +59,15 @@ pub fn handle_line(line: Result<String, std::io::Error>,
                 Kind::Quit => {
                     println!("Quitting..");
                     return true;
+                },
+                Kind::Type(mut exp_string) => {
+                    let mut locals = HashSet::new();
+                    match read_term(&mut exp_string, context, &mut locals, vars) {
+                        Err(()) => println!(">!>!>!>! Error"),
+                        Ok(exp) => {
+                            println!(">=>=>=>= {} : {}", exp.get_type().show(), exp.show())
+                        },
+                    };
                 },
                 Kind::Reload => {
                     println!("Reloading..");
