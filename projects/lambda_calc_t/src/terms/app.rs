@@ -153,12 +153,21 @@ impl Evaluate for App {
                 term: box Term::Var(v),
                 t: typ
             } => {
-                
-                Term::App(App {
-                    fun: box Term::BuildIn(b),
-                    term: box Term::Var(v).eval(context),
-                    t: typ,
-                }).eval(context)
+                let v_ = Term::Var(v.clone()).eval(context);
+                let w_ = Term::Var(v.clone());
+                if v_ != w_ {
+                    Term::App(App {
+                        fun: box Term::BuildIn(b),
+                        term: box v_,
+                        t: typ,
+                    }).eval(context)
+                } else {
+                    Term::App(App {
+                        fun: box Term::BuildIn(b),
+                        term: box Term::Var(v).eval(context),
+                        t: typ,
+                    })
+                }
             },
             App{fun: box Term::BuildIn(b),
                 term: box t,
@@ -175,6 +184,7 @@ impl Evaluate for App {
                 let var = lambda.var;
                 let term_fun = lambda.term;
                 let m = t.eval(context);
+
                 let tmp_t = context.remove(&var.var.clone());
                 context.insert(var.var.clone(), m.clone());
                 let result = term_fun.eval(context);

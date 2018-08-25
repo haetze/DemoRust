@@ -175,6 +175,10 @@ pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
     if let Ok(()) = read_char(s, '-') {
         sign = -1;
     }
+    if s.as_str().starts_with(" ") {
+        s.insert(0, '-');
+        return Err(());
+    }
     let mut st = String::new();
     loop {
         if s.len() == 0 {
