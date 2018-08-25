@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 #![feature(box_patterns, box_syntax)]
 #![feature(extern_prelude)]
+extern crate liner;
+
+use liner::Context;
 
 use std::collections::HashMap;
 use std::io;
 use std::io::Write;
-use std::io::BufRead;
 use std::env;
 
 
@@ -27,13 +29,16 @@ fn main() -> Result<(), ()>{
         read_in_file(path, &mut vars, &mut context);
     }
     
-    let stdin = io::stdin();
 
-    print!("<=<=<=<= ");
-    io::stdout().flush().ok();
+
+    let mut con = Context::new();
     
-    for line in stdin.lock().lines() {
-        
+    loop {
+        let line = con.read_line("<=<=<=< ", &mut |_| {});
+        match &line {
+            Ok(s) => con.history.push(s.clone().into()),
+            _     => Ok(()),
+        }.expect("Some Real Problem");
         if handle_line(line, &mut vars, &mut context, &paths) {
             break;
         }
