@@ -171,6 +171,10 @@ pub fn read_var(s: &mut String, context: &mut HashMap<String, Type>, free: bool)
 }
 
 pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
+    let mut sign = 1;
+    if let Ok(()) = read_char(s, '-') {
+        sign = -1;
+    }
     let mut st = String::new();
     loop {
         if s.len() == 0 {
@@ -187,7 +191,8 @@ pub fn read_val_i32(s: &mut String) -> Result<Term, ()>  {
     if st.len() == 0 {
         return Err(());
     }
-    let v = ValI32::new(st.parse().unwrap());
+    let val: i32 = st.parse().unwrap();
+    let v = ValI32::new(sign * val);
     return Ok(Term::ValI32(v));
 }
 
