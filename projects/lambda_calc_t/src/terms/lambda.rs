@@ -30,11 +30,14 @@ impl Lambda {
 
 impl Evaluate for Lambda {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        Term::Lambda(Lambda {
-            var: self.var,
-            term: box self.term.eval(context),
-            t: self.t,
-        })
+        let tmp = context.remove(&self.var.var);
+        let t = Term::Lambda(Lambda {
+            var: self.var.clone(),
+            term: box self.term.clone().eval(context),
+            t: self.t.clone(),
+        });
+        tmp.and_then(|t| context.insert(self.var.var.clone(), t));
+        t
     }
 }
 

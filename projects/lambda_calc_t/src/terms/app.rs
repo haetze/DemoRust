@@ -1,5 +1,6 @@
 use terms::Term;
 use terms::types::Type;
+use terms::build_ins::BuildIns;
 use terms::types::type_error::TypeError;
 use terms::show::Show;
 use terms::typable::Typable;
@@ -42,6 +43,7 @@ impl App {
                                 break;
                             }
                         }
+                        
                         let t_ = Type::Arrow(Box::new(term_t),
                                              Box::new(t.clone()));
                         context.insert(v.var.clone(), t_.clone());
@@ -76,6 +78,7 @@ impl App {
                             context.insert(var.var.clone(),
                                            (**t_1).clone());
                             var.t = (**t_1).clone();
+
                             Ok(App {
                                 fun: Box::new(fun),
                                 term: Box::new(Term::Var(var)),
@@ -115,15 +118,47 @@ impl App {
 impl Evaluate for App {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match self {
+            App{fun: box Term::BuildIn(BuildIns::ITE3(typ)),
+                term: box t,
+                t: _typ
+            } => {
+                let mut m = t;
+                loop {
+                    m = m.eval(context);
+                    if let Term::ValBool(v) = m {
+                        m = Term::ValBool(v);
+                        break;
+                    }
+                }
+                let t = BuildIns::ITE3(typ.clone()).to_fun()(m);
+                t.eval(context)
+            },
+            App{fun: box Term::BuildIn(BuildIns::ITE2(ref typ, ref b)),
+                term: ref t,
+                t: ref _typ
+            } => {
+                let t = BuildIns::ITE2(typ.clone(), b.clone()).to_fun()(*t.clone());
+                t.eval(context)
+            },
+            App{fun: box Term::BuildIn(BuildIns::ITE1(ref typ, ref b, ref t_1)),
+                term: ref t,
+                t: ref _typ
+            } => {
+                let t = BuildIns::ITE1(typ.clone(), b.clone(), t_1.clone()).to_fun()(*t.clone());
+                let t = t.eval(context);
+                t
+                    
+            },
             App{fun: box Term::BuildIn(b),
                 term: box Term::Var(v),
                 t: typ
             } => {
+                
                 Term::App(App {
                     fun: box Term::BuildIn(b),
                     term: box Term::Var(v).eval(context),
                     t: typ,
-                })
+                }).eval(context)
             },
             App{fun: box Term::BuildIn(b),
                 term: box t,
@@ -139,8 +174,9 @@ impl Evaluate for App {
             } => {
                 let var = lambda.var;
                 let term_fun = lambda.term;
+                let m = t.eval(context);
                 let tmp_t = context.remove(&var.var.clone());
-                context.insert(var.var.clone(), t.clone());
+                context.insert(var.var.clone(), m.clone());
                 let result = term_fun.eval(context);
                 context.remove(&var.var.clone());
                 match tmp_t {
@@ -152,9 +188,9 @@ impl Evaluate for App {
             App{fun: t,
                 term: s,
                 t: typ} => {
-                
+
                 let result_t = t.clone().eval(context);
-                let result_s = s.clone().eval(context);
+                let result_s = *s.clone();
                 if result_t == *t && result_s == *s {
                     return Term::App(App{
                         fun: box result_t,

@@ -58,8 +58,12 @@ impl Var {
 
 impl Evaluate for Var {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
+
         match context.get(&self.var) {
-            Some(t) => t.clone(),
+            Some(t) => {
+                //println!("Replacing {} with {}", self.show(), t.show());
+                t.clone()
+            },
             None    => Term::Var(self),
         }   
             

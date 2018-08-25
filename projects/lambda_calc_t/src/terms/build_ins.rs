@@ -2,12 +2,9 @@ use terms::Term;
 use terms::types::Type;
 use terms::valbool::ValBool;
 use terms::vali32::ValI32;
-use terms::var::Var;
-use terms::lambda::Lambda;
 use terms::show::Show;
 use terms::typable::Typable;
 
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BuildIns {
@@ -22,7 +19,9 @@ pub enum BuildIns {
     Add1(Type, i32),
     Mult2(Type),
     Mult1(Type, i32),
-    ITE(Type),
+    ITE3(Type),
+    ITE2(Type, bool),
+    ITE1(Type, bool, Box<Term>),
 }
 
 impl BuildIns {
@@ -74,39 +73,41 @@ impl BuildIns {
                     }
                 })
             },
-            BuildIns::ITE(typ) => {
+            BuildIns::ITE3(typ) => {
                 box (move |t| {
-                    let mut context = HashMap::new();
                     if let Type::Arrow(box Type::Bool, box Type::Arrow(b, c)) = typ.clone() {
                         match t {
-                            
                             Term::ValBool(v) => {
-                                let mut var_x = Var::new("__x".to_string(),
-                                                         &mut context,
-                                                         true);
-                                let mut var_y = Var::new("__y".to_string(),
-                                                         &mut context,
-                                                         true);
-                                var_x.t = *b.clone();
-                                var_y.t = *c.clone();
-                                if v.val {
-                                    let lam = Lambda::new(var_y,
-                                                          Term::Var(var_x.clone()));
-                                    let lam = Lambda::new(var_x,
-                                                          Term::Lambda(lam));
-                                    return Term::Lambda(lam);
-                                } else {
-                                    let lam = Lambda::new(var_y.clone(),
-                                                          Term::Var(var_y));
-                                    let lam = Lambda::new(var_x,
-                                                          Term::Lambda(lam));
-                                    return Term::Lambda(lam);
-                                }
+                                let t = Type::Arrow(b, c);
+                                let b = BuildIns::ITE2(t, v.val);
+
+                                Term::BuildIn(b)
+                                
                             },
                             t   => t,
                         }
                     } else {
                         panic!("Big Problem");
+                    }
+                })
+            },
+            BuildIns::ITE2(typ, bl) => {
+                box (move |t| {
+                    if let Type::Arrow(box _a, box Type::Arrow(b, c)) = typ.clone() {   
+                        let typ = Type::Arrow(b, c);
+                        let b = BuildIns::ITE1(typ, bl, box t);
+                        Term::BuildIn(b)
+                    } else {
+                        panic!("Big Problem");
+                    }
+                })
+            },
+            BuildIns::ITE1(_, b, t_1) => {
+                box (move |t| {
+                    if b {
+                        *t_1.clone()
+                    } else {
+                        t
                     }
                 })
             },
@@ -208,7 +209,9 @@ impl Typable for BuildIns {
             BuildIns::Add1(t,_)  => t,
             BuildIns::Mult2(t)  => t,
             BuildIns::Mult1(t,_)  => t,
-            BuildIns::ITE(t)  => t,
+            BuildIns::ITE3(t)  => t,
+            BuildIns::ITE2(t,_)  => t,
+            BuildIns::ITE1(t,_,_)  => t,
 
         }
     }
@@ -228,7 +231,9 @@ impl Show for BuildIns {
             BuildIns::Add1(_,t) => format!("+{}", t),
             BuildIns::Mult2(_) => "*".to_string(),
             BuildIns::Mult1(_,t) => format!("*{}", t),
-            BuildIns::ITE(_) => format!("?"),
+            BuildIns::ITE3(_) => format!("if"),
+            BuildIns::ITE2(_, b) => format!("if {}", b),
+            BuildIns::ITE1(_, b, t) => format!("if {} then {}", b, t.show()),
 
         }
     }

@@ -86,8 +86,9 @@ pub fn read_ite(s: &mut String, context: &mut HashMap<String, Type>) -> Result<T
     let typ = free_type_var(context);
     let t = Type::Arrow(box Type::Bool,
                         box Type::Arrow(box typ.clone(),
-                                        box typ.clone()));
-    Ok(Term::BuildIn(BuildIns::ITE(t)))
+                                        box Type::Arrow(box typ.clone(),
+                                                        box typ.clone())));
+    Ok(Term::BuildIn(BuildIns::ITE3(t)))
 }
 
 
@@ -194,6 +195,7 @@ pub fn read_lambda(s: &mut String,
                    context: &mut HashMap<String, Type>,
                    locals: &mut HashSet<String>,
                    vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
+
     read_char(s, '(')?;
     match read_char(s, 'λ') {
         Err(_) => {
@@ -253,7 +255,6 @@ pub fn read_term(s: &mut String,
                  context: &mut HashMap<String, Type>,
                  locals: &mut HashSet<String>,
                  vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
-    
     if let Ok(Term::ValI32(v)) = read_val_i32(s) {
         return Ok(Term::ValI32(v));
     }

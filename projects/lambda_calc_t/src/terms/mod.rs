@@ -38,27 +38,14 @@ pub enum Term{
 
 impl Evaluate for Term {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        let mut t = self.clone();
-        let mut s = match self {
+        match self {
                 Term::ValI32(v) => v.eval(context),
                 Term::ValBool(v) => v.eval(context),
                 Term::Var(v) => v.eval(context),
                 Term::Lambda(v) => v.eval(context),
                 Term::App(v) => v.eval(context),
                 t            => t,
-        };
-        while s != t {
-            t = s.clone();
-            s = match s {
-                Term::ValI32(v) => v.eval(context),
-                Term::ValBool(v) => v.eval(context),
-                Term::Var(v) => v.eval(context),
-                Term::Lambda(v) => v.eval(context),
-                Term::App(v) => v.eval(context),
-                t            => t,
-            }; 
         }
-        return s;
     }
 }
 

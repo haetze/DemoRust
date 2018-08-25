@@ -1,2 +1,6 @@
-:set add (λx.((+ x) 1))
+:set or (λa.(λb.(((if a) true) b)))
+:set zero_or_one (λn.((or (zerop n)) ((= 1) n)))
 :set add (λx.(λy.((+ x) y)))
+:set fac (λn.(((if (zerop n)) 1) ((* n) (fac (dec n)))))
+:set fib (λn.(((if (zero_or_one n)) 1) ((+ (fib (dec n))) (fib (dec (dec n))))))
+:set test (λn.(dec (dec n)))
