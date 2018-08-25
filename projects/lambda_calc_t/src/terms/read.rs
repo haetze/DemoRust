@@ -253,7 +253,10 @@ pub fn read_app(s: &mut String,
         locals.insert(var.var.clone());
         t_2 = Term::Var(var);
     }
+    let t_1 = correct(t_1, context);
+    let t_2 = correct(t_2, context);
     let app = App::new(t_1, t_2, context);
+
     match app {
         Ok(app) => Ok(Term::App(app)),
         Err(_)  => Err(()),
@@ -264,32 +267,31 @@ pub fn read_term(s: &mut String,
                  context: &mut HashMap<String, Type>,
                  locals: &mut HashSet<String>,
                  vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
+    let t;
     if let Ok(Term::ValI32(v)) = read_val_i32(s) {
-        return Ok(Term::ValI32(v));
-    }
-    if let Ok(Term::ValBool(v)) = read_true(s) {
-        return Ok(Term::ValBool(v));
-    }
-    if let Ok(Term::ValBool(v)) = read_false(s) {
-        return Ok(Term::ValBool(v));
-    }
-    if let Ok(Term::BuildIn(b)) = read_build_in(s, context) {
-        return Ok(Term::BuildIn(b));
-    }
-    if let Ok(Term::Var(v)) = read_var(s, context, false) {
+        t = Ok(Term::ValI32(v));
+    } else if let Ok(Term::ValBool(v)) = read_true(s) {
+        t = Ok(Term::ValBool(v));
+    } else if let Ok(Term::ValBool(v)) = read_false(s) {
+        t = Ok(Term::ValBool(v));
+    } else if let Ok(Term::BuildIn(b)) = read_build_in(s, context) {
+        t = Ok(Term::BuildIn(b));
+    } else if let Ok(Term::Var(v)) = read_var(s, context, false) {
         match vars.get(&v.var) {
-            Some(t) => {
-                return Ok(t.clone());
+            Some(s) => {
+                t = Ok(s.clone());
             },
             None => {
-                return Ok(correct(Term::Var(v), context));
+                let v = correct(Term::Var(v), context);
+                t = Ok(v);
             },
         }
+    } else if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals, vars) {
+        t = Ok(correct(Term::Lambda(l), context));
+    } else {
+        t = read_app(s, context, locals, vars).map(|x| correct(x, context));
     }
-    if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals, vars) {
-        return Ok(correct(Term::Lambda(l), context));
-    }
-    read_app(s, context, locals, vars).map(|x| correct(x, context))
+    return t;
 }
 
 fn correct(term: Term, context: &mut HashMap<String, Type>) -> Term {

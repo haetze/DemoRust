@@ -54,6 +54,33 @@ impl App {
                             t: t,
                         })
                     },
+                    Term::App(mut app) => {
+                        let t;
+                        let mut smallest_available = 0;
+                        loop {
+                            let mut available = true;
+                            for (_, v) in context.iter() {
+                                if let Type::Var(s) = v {
+                                    if *s == smallest_available {
+                                        available = false;
+                                        smallest_available = s + 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            if available {
+                                t = Type::Var(smallest_available);
+                                break;
+                            }
+                        }
+                        
+                       
+                        Ok(App {
+                            fun: Box::new(Term::App(app)),
+                            term: Box::new(term),
+                            t: t,
+                        })
+                    },
                     _ => Err(TypeError::Unkown),
                 }
                         
@@ -153,6 +180,7 @@ impl Evaluate for App {
                 term: box Term::Var(v),
                 t: typ
             } => {
+
                 let v_ = Term::Var(v.clone()).eval(context);
                 let w_ = Term::Var(v.clone());
                 if v_ != w_ {
@@ -201,12 +229,21 @@ impl Evaluate for App {
 
                 let result_t = t.clone().eval(context);
                 let result_s = *s.clone();
-                if result_t == *t && result_s == *s {
-                    return Term::App(App{
-                        fun: box result_t,
-                        term: box result_s,
-                        t:typ,
-                    });
+                if result_t == *t {
+                    let result_s = s.clone().eval(context);
+                    if result_s == *s {
+                        return Term::App(App{
+                            fun: box result_t,
+                            term: box result_s,
+                            t:typ,
+                        });
+                    } else {
+                        return Term::App(App{
+                            fun: box result_t,
+                            term: box result_s,
+                            t:typ,
+                        }).eval(context)
+                    }
                 }
                 Term::App(App{
                     fun: box result_t,

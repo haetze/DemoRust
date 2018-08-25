@@ -6,3 +6,4 @@
 :set fib (λn.(((if (zero_or_one n)) 1) ((+ (fib (dec n))) (fib (dec (dec n))))))
 :set test_a (λn.(dec (dec n)))
 :set test_b (λn.(inc (inc n)))
+:set pow (λp.(λn.(((if (zerop p)) 1) ((* n) ((pow (dec p)) n)))))
