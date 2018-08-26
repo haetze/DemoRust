@@ -9,3 +9,4 @@
 :set test_b (λn.(inc (inc n)))
 :set pow (λp.(λn.(((if (zerop p)) 1) ((* n) ((pow (dec p)) n)))))
 :set sq (pow 2)
+:set mult (λm.(λn.(((if (zerop m)) 0) ((+ n) ((mult (dec m)) n)))))
