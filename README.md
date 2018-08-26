@@ -38,6 +38,8 @@
 * [Reading a single char from keyboard async-ly, it's awful](https://github.com/haetze/DemoRust/tree/master/projects/async_read_keyboard)
 * [Primes](https://github.com/haetze/DemoRust/tree/master/projects/prime), checking if prime or all primes til a number
 * [Small Lambda Calc impl](https://github.com/haetze/DemoRust/tree/master/projects/lambda_calc), untyped
+* [Small Lambda Calc impl](https://github.com/haetze/DemoRust/tree/master/projects/lambda_calc_t), typed
+* [Conway](https://github.com/haetze/DemoRust/tree/master/projects/conway)
 
 # Learning material
 * [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
