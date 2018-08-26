@@ -1,3 +1,6 @@
+use rayon::prelude::*;
+
+
 #[derive(Clone, Debug)]
 pub struct Board {
     lines: Vec<Vec<bool>>,
@@ -37,18 +40,17 @@ impl Board {
         });
         sum
     }
-    pub fn step(&self) -> Board {
-        let mut lines = Vec::new();
-        for (y, line) in self.lines.iter().enumerate() {
-            let mut new_line = Vec::new();
-            for (x, v) in line.iter().enumerate() {
+    pub fn step(self) -> Board {
+        let lines: Vec<_> = self.lines.par_iter().enumerate().map(|(y, line)| {
+            let new_line: Vec<_> = line.par_iter().enumerate().map(|(x, v)| {
                 let new_v;
                 let around = self.field(x, y);
                 new_v = around == 3 || (*v && around == 2);
-                new_line.push(new_v);
-            }
-            lines.push(new_line);
-        }
+                new_v
+            }).collect();
+            new_line
+        }).collect();
+        
         Board {
             lines: lines,
         }

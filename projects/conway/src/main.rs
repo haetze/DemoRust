@@ -1,3 +1,5 @@
+extern crate rayon;
+
 mod board;
 use board::Board;
 
