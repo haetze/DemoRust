@@ -11,3 +11,4 @@
 :set sq (pow 2)
 :set mult (λm.(λn.(((if (zerop m)) 0) ((+ n) ((mult (dec m)) n)))))
 :set to_list (λn.(((if (zerop n)) nil) ((cons n) (to_list (dec n)))))
+:set eeq (λa.(λb.((= a) b)))

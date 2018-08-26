@@ -18,6 +18,9 @@ pub enum BuildIns {
     Eq1I(Type, i32),
     Eq2B(Type),
     Eq1B(Type, bool),
+    Eq2(Type),
+    Eq1(Type, Box<Term>),
+    Eq0(Type, Box<Term>, Box<Term>),
     Add2(Type),
     Add1(Type, Box<Term>),
     Add0(Type, Box<Term>, Box<Term>),
@@ -75,6 +78,30 @@ impl BuildIns {
                             Term::ValBool(b)
                         },
                         t   => t,
+                    }
+                })
+            },
+            BuildIns::Eq2(_) => {
+                box (|t| {
+                    match t {
+                        t => {
+                            let t_t = t.get_type().clone();
+                            let typ = Type::Arrow(box t_t.clone(), box Type::Bool);
+                            let b = BuildIns::Eq1(typ, box t);
+                            Term::BuildIn(b)
+                        },
+                    }
+                })
+            },
+            BuildIns::Eq1(_, i) => {
+                box (move |t| {
+                    match t {
+                        t   => {
+                            let b = BuildIns::Eq0(Type::Bool,
+                                                   i.clone(),
+                                                   box t);
+                            Term::BuildIn(b)
+                        },
                     }
                 })
             },
@@ -214,6 +241,9 @@ impl Typable for BuildIns {
             BuildIns::Eq1I(t,_)  => t,
             BuildIns::Eq2B(t)  => t,
             BuildIns::Eq1B(t,_)  => t,
+            BuildIns::Eq2(t)  => t,
+            BuildIns::Eq1(t,_)  => t,
+            BuildIns::Eq0(t,_,_)  => t,
             BuildIns::Add2(t)  => t,
             BuildIns::Add1(t,_)  => t,
             BuildIns::Add0(t,_,_)  => t,
@@ -238,6 +268,9 @@ impl Show for BuildIns {
             BuildIns::Eq1I(_,t) => format!("{}=", t),
             BuildIns::Eq2B(_) => "eq".to_string(),
             BuildIns::Eq1B(_,t) => format!("{} eq", t),
+            BuildIns::Eq2(_) => "=".to_string(),
+            BuildIns::Eq1(_,t) => format!("{}=", t.show()),
+            BuildIns::Eq0(_,t,s) => format!("{}={}", t.show(), s.show()),
             BuildIns::Add2(_) => "+".to_string(),
             BuildIns::Add1(_,t) => format!("+{}", t.show()),
             BuildIns::Add0(_,t,s) => format!("{}+{}", t.show(), s.show()),
@@ -255,12 +288,6 @@ impl Show for BuildIns {
 impl Evaluate for BuildIns {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term{
         match self {
-            BuildIns::Mult0(_,
-                            box Term::ValI32(a),
-                            box Term::ValI32(b)) => Term::ValI32(ValI32::new(a.val * b.val)),
-            BuildIns::Add0(_,
-                           box Term::ValI32(a),
-                           box Term::ValI32(b)) => Term::ValI32(ValI32::new(a.val + b.val)),
             BuildIns::Add0(t,
                            mut a,
                            mut b) => {
@@ -317,6 +344,28 @@ impl Evaluate for BuildIns {
                 Term::BuildIn(BuildIns::Mult0(t,
                                              a,
                                              b))
+            },
+            BuildIns::Eq0(_,
+                           mut a,
+                           mut b) => {
+                loop {
+                    let a_ = a.clone();
+                    a = box a.eval(context);
+                    if a == a_ {
+                        break;
+                    }
+                }
+
+                loop {
+                    let b_ = b.clone();
+                    b = box b.eval(context);
+                    if b == b_ {
+                        break;
+                    }
+                }
+
+                return Term::ValBool(ValBool::new(a == b));
+                
             },
             t => Term::BuildIn(t),
         }
