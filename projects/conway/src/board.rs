@@ -59,12 +59,11 @@ impl Board {
     pub fn show(&self) -> String {
         let mut string = String::new();
         for line in &self.lines {
-            string.push_str("| ");
             for v in line {
                 if *v {
-                    string.push_str(&format!("X | "));
+                    string.push_str(&format!(" "));
                 } else {
-                    string.push_str(&format!("O | "));
+                    string.push_str(&format!("█"));
                 }
             }
             string.push_str("\n");
