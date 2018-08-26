@@ -14,10 +14,6 @@ pub enum BuildIns {
     Inc(Type),
     Dec(Type),
     Zerop(Type),
-    Eq2I(Type),
-    Eq1I(Type, i32),
-    Eq2B(Type),
-    Eq1B(Type, bool),
     Eq2(Type),
     Eq1(Type, Box<Term>),
     Eq0(Type, Box<Term>, Box<Term>),
@@ -35,52 +31,6 @@ pub enum BuildIns {
 impl BuildIns {
     pub fn to_fun(self) -> Box<Fn(Term) -> Term> {
         match self {
-            BuildIns::Eq2I(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValI32(v) => {
-                            let t = Type::Arrow(box Type::I32, box Type::Bool);
-                            let b = BuildIns::Eq1I(t, v.val);
-                            Term::BuildIn(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq1I(_, i) => {
-                box (move |t| {
-                    match t {
-                        Term::ValI32(v) => {
-                            let b = ValBool::new(i == v.val);
-                            Term::ValBool(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq2B(_) => {
-                box (|t| {
-                    match t {
-                        Term::ValBool(v) => {
-                            let t = Type::Arrow(box Type::Bool, box Type::Bool);
-                            let b = BuildIns::Eq1B(t, v.val);
-                            Term::BuildIn(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
-            BuildIns::Eq1B(_, i) => {
-                box (move |t| {
-                    match t {
-                        Term::ValBool(v) => {
-                            let b = ValBool::new(i == v.val);
-                            Term::ValBool(b)
-                        },
-                        t   => t,
-                    }
-                })
-            },
             BuildIns::Eq2(_) => {
                 box (|t| {
                     match t {
@@ -237,10 +187,6 @@ impl Typable for BuildIns {
             BuildIns::Inc(t) => t,
             BuildIns::Dec(t) => t,
             BuildIns::Zerop(t) => t,
-            BuildIns::Eq2I(t)  => t,
-            BuildIns::Eq1I(t,_)  => t,
-            BuildIns::Eq2B(t)  => t,
-            BuildIns::Eq1B(t,_)  => t,
             BuildIns::Eq2(t)  => t,
             BuildIns::Eq1(t,_)  => t,
             BuildIns::Eq0(t,_,_)  => t,
@@ -264,10 +210,6 @@ impl Show for BuildIns {
             BuildIns::Inc(_) => "inc".to_string(),
             BuildIns::Dec(_) => "dec".to_string(),
             BuildIns::Zerop(_) => "zerop".to_string(),
-            BuildIns::Eq2I(_) => "=".to_string(),
-            BuildIns::Eq1I(_,t) => format!("{}=", t),
-            BuildIns::Eq2B(_) => "eq".to_string(),
-            BuildIns::Eq1B(_,t) => format!("{} eq", t),
             BuildIns::Eq2(_) => "=".to_string(),
             BuildIns::Eq1(_,t) => format!("{}=", t.show()),
             BuildIns::Eq0(_,t,s) => format!("{}={}", t.show(), s.show()),

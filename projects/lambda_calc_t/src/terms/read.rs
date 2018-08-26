@@ -65,20 +65,13 @@ pub fn read_zerop(s: &mut String) -> Result<Term, ()> {
     Ok(Term::BuildIn(BuildIns::Zerop(t)))
 }
 
-pub fn read_eq(s: &mut String) -> Result<Term, ()> {
+pub fn read_eq(s: &mut String, context:& mut HashMap<String, Type>) -> Result<Term, ()> {
     read_str(s, "=")?;
-    let t = Type::Arrow(box Type::I32,
-                        box Type::Arrow(box Type::I32,
+    let typ = free_type_var(context);
+    let t = Type::Arrow(box typ.clone(),
+                        box Type::Arrow(box typ.clone(),
                                         box Type::Bool));
-    Ok(Term::BuildIn(BuildIns::Eq2I(t)))
-}
-
-pub fn read_eq_b(s: &mut String) -> Result<Term, ()> {
-    read_str(s, "eq")?;
-    let t = Type::Arrow(box Type::Bool,
-                        box Type::Arrow(box Type::Bool,
-                                        box Type::Bool));
-    Ok(Term::BuildIn(BuildIns::Eq2B(t)))
+    Ok(Term::BuildIn(BuildIns::Eq2(t)))
 }
 
 pub fn read_ite(s: &mut String, context: &mut HashMap<String, Type>) -> Result<Term, ()> {
@@ -119,10 +112,7 @@ pub fn read_build_in(s: &mut String,
     if let Ok(t) = read_zerop(s) {
         return Ok(t);
     }
-    if let Ok(t) = read_eq(s) {
-        return Ok(t);
-    }
-    if let Ok(t) = read_eq_b(s) {
+    if let Ok(t) = read_eq(s, context) {
         return Ok(t);
     }
     if let Ok(t) = read_add(s) {
