@@ -4,7 +4,7 @@
 :set add (λx.(λy.((+ x) y)))
 :set sub (λx.(λy.((+ x) ((* -1) y))))
 :set fac (λn.(((if (zerop n)) 1) ((* n) (fac (dec n)))))
-:set fib (λn.(((if (zero_or_one n)) 1) ((+ (fib (dec n))) (fib (dec (dec n))))))
+:set fib (λn.(((if ((= 0) n)) 0) (((if ((= 1) n)) 1) ((+ (fib (dec n))) (fib (dec (dec n)))))))
 :set test_a (λn.(dec (dec n)))
 :set test_b (λn.(inc (inc n)))
 :set pow (λp.(λn.(((if (zerop p)) 1) ((* n) ((pow (dec p)) n)))))
