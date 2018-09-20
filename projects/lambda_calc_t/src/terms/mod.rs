@@ -4,6 +4,7 @@ pub mod eval;
 pub mod typable;
 pub mod show;
 pub mod read;
+pub mod matching;
 mod valbool;
 mod var;
 mod lambda;
