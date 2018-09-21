@@ -8,7 +8,6 @@ use terms::build_ins::BuildIns;
 use terms::Term;
 use terms::matching::Match;
 use terms::matching::Matches;
-use terms::show::Show;
 use std::collections::HashSet;
 use std::collections::HashMap;
 

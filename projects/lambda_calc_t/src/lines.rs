@@ -1,6 +1,3 @@
-
-
-use terms::types::Type;
 use terms::Term;
 use terms::read::read_term;
 use terms::read::read_var;
