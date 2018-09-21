@@ -151,7 +151,7 @@ impl Evaluate for App {
             } => {
                 let term = term.eval(context);
                 if let Some(t) = m.exec_match(term) {
-                    t
+                    t.eval(context)
                 } else {
                     Term::App(self)
                 }

@@ -8,6 +8,7 @@ use terms::build_ins::BuildIns;
 use terms::Term;
 use terms::matching::Match;
 use terms::matching::Matches;
+use terms::show::Show;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
@@ -272,9 +273,11 @@ pub fn read_app(s: &mut String,
                 vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
     read_char(s, '(')?;
     let mut t_1 = read_term(s, context, locals, vars)?;
+
     if s.len() == 0 {
         return Err(());
     }
+
     read_char(s, ' ')?;
     let mut t_2 = read_term(s, context, locals, vars)?;
     read_char(s, ')')?;
@@ -286,10 +289,10 @@ pub fn read_app(s: &mut String,
         locals.insert(var.var.clone());
         t_2 = Term::Var(var);
     }
+
     let t_1 = correct(t_1, context);
     let t_2 = correct(t_2, context);
     let app = App::new(t_1, t_2, context);
-
     match app {
         Ok(app) => Ok(Term::App(app)),
         Err(_)  => Err(()),
@@ -310,15 +313,8 @@ pub fn read_term(s: &mut String,
     } else if let Ok(Term::BuildIn(b)) = read_build_in(s, context) {
         t = Ok(Term::BuildIn(b));
     } else if let Ok(Term::Var(v)) = read_var(s, context, false) {
-        match vars.get(&v.var) {
-            Some(s) => {
-                t = Ok(s.clone());
-            },
-            None => {
-                let v = correct(Term::Var(v), context);
-                t = Ok(v);
-            },
-        }
+        let v = correct(Term::Var(v), context);
+        t = Ok(v);
     }else if let Ok(Term::Match(l)) = read_match(s, context, locals, vars) {
         t = Ok(correct(Term::Match(l), context));
     } else if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals, vars) {

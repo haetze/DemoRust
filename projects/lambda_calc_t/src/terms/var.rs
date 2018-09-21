@@ -42,7 +42,7 @@ impl Var {
             }
         }
 
-        if context.contains_key(&var) {
+        if context.contains_key(&var){
             let val = context.remove(&var).unwrap();
             let key = format!("{}{}", var, val.show());
             context.insert(key, val);

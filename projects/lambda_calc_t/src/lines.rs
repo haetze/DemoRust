@@ -51,10 +51,13 @@ fn read_kind(mut st: String) -> Kind {
 
 
 pub fn handle_line(line: Result<String, std::io::Error>,
-               vars: &mut HashMap<String, Term>,
-               context: &mut HashMap<String, Type>,
-               paths: &Vec<String>) -> bool {
-    
+                   vars: &mut HashMap<String, Term>,
+                   paths: &Vec<String>) -> bool {
+    let mut context = HashMap::new();
+    for (k, v) in vars.iter() {
+        context.insert(k.clone(), v.get_type().clone());
+    }
+    let context = &mut context;
     match line {
         Ok(exp_string) => {
             match read_kind(exp_string) {
@@ -74,12 +77,10 @@ pub fn handle_line(line: Result<String, std::io::Error>,
                 Kind::Reload => {
                     println!("Reloading..");
                     let mut map = HashMap::new();
-                    let mut new_context = HashMap::new();
                     for path in paths.iter() {
-                        read_in_file(path, &mut map, &mut new_context);
+                        read_in_file(path, &mut map);
                     }
                     std::mem::swap(vars, &mut map);
-                    std::mem::swap(context, &mut new_context);
                     return false;
                 },
                 Kind::Term(mut exp_string) => {
@@ -116,12 +117,11 @@ pub fn handle_line(line: Result<String, std::io::Error>,
 }
 
 pub fn read_in_file(path: &String,
-                vars: &mut HashMap<String, Term>,
-                context: &mut HashMap<String, Type>) {
+                vars: &mut HashMap<String, Term>,) {
     let file = File::open(path).expect("file not found");
     let file = BufReader::new(&file);
     for line in file.lines() {
-        handle_line(line, vars, context, &Vec::new());
+        handle_line(line, vars, &Vec::new());
     }
     
 }

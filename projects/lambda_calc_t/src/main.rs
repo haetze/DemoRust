@@ -25,11 +25,10 @@ use terms::types::Type;
 fn main() -> Result<(), ()>{
 
     let mut vars: HashMap<String, Term> = HashMap::new();
-    let mut context: HashMap<String, Type> = HashMap::new();
     let paths: Vec<String>           = env::args().skip(1).collect();
     
     for path in &paths {
-        read_in_file(path, &mut vars, &mut context);
+        read_in_file(path, &mut vars);
     }
     
 
@@ -42,7 +41,7 @@ fn main() -> Result<(), ()>{
             Ok(s) => con.history.push(s.clone().into()),
             _     => Ok(()),
         }.expect("Some Real Problem");
-        if handle_line(line, &mut vars, &mut context, &paths) {
+        if handle_line(line, &mut vars, &paths) {
             break;
         }
         print!("<=<=<=<= ");

@@ -14,3 +14,4 @@
 :set eeq (λa.(λb.((= a) b)))
 :set head (μ((((cons n) s) -> n)(m -> error)))
 :set tail (μ((((cons n) s) -> s)(m -> error)))
+:set sum (μ((((cons n) s) -> ((+ n) (sum s)))(m -> 0)))
