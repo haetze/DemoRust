@@ -1,5 +1,4 @@
 use terms::Term;
-use terms::matching::Matches;
 use terms::types::Type;
 use terms::build_ins::BuildIns;
 use terms::types::type_error::TypeError;
@@ -148,8 +147,9 @@ impl Evaluate for App {
         match self.clone() {
             App{fun: box Term::Match(m),
                 term: box term,
-                t: t_
-            } => {              
+                t: _t
+            } => {
+                let term = term.eval(context);
                 if let Some(t) = m.exec_match(term) {
                     t
                 } else {

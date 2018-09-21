@@ -319,6 +319,8 @@ pub fn read_term(s: &mut String,
                 t = Ok(v);
             },
         }
+    }else if let Ok(Term::Match(l)) = read_match(s, context, locals, vars) {
+        t = Ok(correct(Term::Match(l), context));
     } else if let Ok(Term::Lambda(l)) = read_lambda(s, context, locals, vars) {
         t = Ok(correct(Term::Lambda(l), context));
     } else {
