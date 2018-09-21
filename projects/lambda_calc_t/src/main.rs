@@ -20,40 +20,45 @@ mod terms;
 use terms::*;
 use terms::types::Type;
 use terms::matching::Match;
+use terms::matching::Matches;
 
 
 use std::collections::HashSet;
 use terms::show::Show;
+use terms::eval::Evaluate;
+use terms::app::App;
 
 fn main() {
     let mut locals: HashSet<_> = HashSet::new();
     let mut globals: HashMap<String, Term> = HashMap::new();
     let mut context: HashMap<String, Type> = HashMap::new();
-    let mut t_1_s = "((cons 1) ((cons 2) nil))".to_string();
-    let t_1 = read::read_term(&mut t_1_s,
+    let mut t_1_s = "(μ((((cons 1) ((cons 3) nil)) -> n)(m -> m)))".to_string();
+    let t_1 = read::read_match(&mut t_1_s,
                               &mut context,
                               &mut locals,
-                              &mut globals).unwrap();
+                               &mut globals).unwrap();
     println!("{}", t_1.show());
 
 
-    let mut t_2_s = "((cons 1) ((cons n) nil))".to_string();
+    let mut t_2_s = "((cons 1) ((cons 2) nil))".to_string();
     let t_2 = read::read_term(&mut t_2_s,
                               &mut context,
                               &mut locals,
                               &mut globals).unwrap();
-    println!("{}", t_2.show());
+    // println!("{}", t_2.show());
 
-    let mut t_3_s = "n".to_string();
-    let t_3 = read::read_term(&mut t_3_s,
-                              &mut context,
-                              &mut locals,
-                              &mut globals).unwrap();
-    println!("{}", t_3.show());
+    // let mut t_3_s = "n".to_string();
+    // let t_3 = read::read_term(&mut t_3_s,
+    //                           &mut context,
+    //                           &mut locals,
+    //                           &mut globals).unwrap();
+    // println!("{}", t_3.show());
 
-    let m = Match::new(t_1, t_2, t_3);
+    // let m = Match::new(t_1.clone(), t_2, t_3);
 
-    let t_4 = m.exec_match().unwrap();
+    let m_2 = Term::App(App::new(t_1, t_2, &mut context).unwrap());
+    
+    let t_4 = m_2.eval(&mut globals);
     println!("{}", t_4.show());
 
     

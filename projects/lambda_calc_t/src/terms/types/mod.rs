@@ -13,6 +13,36 @@ pub enum Type {
 }
 
 impl Type {
+
+    pub fn match_t(t: Type, s: Type) -> Option<Type> {
+        use Type::*;
+        match t.clone() {
+            I32 => {
+                match s.clone() {
+                    Var(_) => Some(I32),
+                    _      => None,
+                }
+            },
+            Bool => {
+                match s.clone() {
+                    Var(_) => Some(Bool),
+                    _      => None,
+                }
+            },
+            Var(_) => Some(s),
+            Arrow(t_1, t_2) => {
+                match s.clone() {
+                    Var(_) => Some(Arrow(t_1, t_2)),
+                    Arrow(s_1, s_2) => {
+                        let r_1 = Type::match_t(*t_1, *s_1)?;
+                        let r_2 = Type::match_t(*t_2, *s_2)?;
+                        Some(Arrow(box r_1, box r_2))
+                    },
+                    _      => None,
+                }
+            },
+        }
+    }
     pub fn replace_var(self, i: u32, t: Type) -> Type {
         use Type::*;
         match self {

@@ -6,6 +6,8 @@ use terms::lambda::Lambda;
 use terms::app::App;
 use terms::build_ins::BuildIns;
 use terms::Term;
+use terms::matching::Match;
+use terms::matching::Matches;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
@@ -35,6 +37,47 @@ fn read_str(s: &mut String, st: &str) -> Result<(), ()> {
         }               
     }
     return Ok(());
+}
+
+pub fn read_match(s: &mut String,
+                  context:& mut HashMap<String, Type>,
+                  locals: &mut HashSet<String>,
+                  vars: &mut HashMap<String, Term>) -> Result<Term, ()> {
+    read_str(s, "(μ(")?;
+    
+    let mut matches: Option<Matches> = None;
+    loop {
+
+        read_str(s, "(")?;
+        let t = read_term(s, context, locals, vars)?;
+        read_str(s, " -> ")?;
+        let r = read_term(s, context, locals, vars)?;
+        read_str(s, ")")?;
+        let m = Match::new(Term::ValBool(ValBool::new(false)),
+                           t,
+                           r);
+        if let None = matches.clone() {
+            matches = Some(Matches::new(m));
+        } else {
+            let mut ma = matches.clone().unwrap();
+            match ma.add(m) {
+                None => return Err(()),
+                _    => {
+                    matches = Some(ma);
+                },
+            };
+        }
+
+        if let Err(()) = read_str(s, "))") {
+            continue;
+        } else {
+            break;
+        }
+    }
+
+    Ok(Term::Match(matches.unwrap()))
+    
+    
 }
 
 pub fn read_true(s: &mut String) -> Result<Term, ()> {

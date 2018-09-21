@@ -8,7 +8,7 @@ pub mod matching;
 mod valbool;
 mod var;
 mod lambda;
-mod app;
+pub mod app;
 mod build_ins;
 
 use terms::types::Type;
@@ -20,6 +20,7 @@ use terms::valbool::ValBool;
 use terms::var::Var;
 use terms::lambda::Lambda;
 use terms::app::App;
+use terms::matching::Matches;
 use terms::build_ins::BuildIns;
 use std::collections::HashMap;
 
@@ -32,6 +33,7 @@ pub enum Term{
     Var(Var),
     Lambda(Lambda),
     App(App),
+    Match(Matches),
     BuildIn(BuildIns),
 }
 
@@ -40,12 +42,13 @@ pub enum Term{
 impl Evaluate for Term {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
         match self {
-                Term::ValI32(v) => v.eval(context),
-                Term::ValBool(v) => v.eval(context),
-                Term::Var(v) => v.eval(context),
-                Term::Lambda(v) => v.eval(context),
-                Term::App(v) => v.eval(context),
-                Term::BuildIn(v) => v.eval(context),
+            Term::ValI32(v) => v.eval(context),
+            Term::ValBool(v) => v.eval(context),
+            Term::Var(v) => v.eval(context),
+            Term::Lambda(v) => v.eval(context),
+            Term::App(v) => v.eval(context),
+            Term::BuildIn(v) => v.eval(context),
+            s => s,
         }
     }
 }
@@ -60,6 +63,7 @@ impl Typable for Term {
             Term::Lambda(v) => v.get_type(),
             Term::App(v) => v.get_type(),
             Term::BuildIn(b) => b.get_type(),
+            Term::Match(m) => m.get_type(),
         }
     }
 }
@@ -74,6 +78,7 @@ impl Show for Term {
             Term::Lambda(v) => v.show(),
             Term::App(v) => v.show(),
             Term::BuildIn(b) => b.show(),
+            Term::Match(m) => m.show(),
         }
     }
 }

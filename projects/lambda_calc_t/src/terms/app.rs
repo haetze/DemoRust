@@ -1,4 +1,5 @@
 use terms::Term;
+use terms::matching::Matches;
 use terms::types::Type;
 use terms::build_ins::BuildIns;
 use terms::types::type_error::TypeError;
@@ -144,7 +145,17 @@ impl App {
 
 impl Evaluate for App {
     fn eval(self, context: &mut HashMap<String, Term>) -> Term {
-        match self {
+        match self.clone() {
+            App{fun: box Term::Match(m),
+                term: box term,
+                t: t_
+            } => {              
+                if let Some(t) = m.exec_match(term) {
+                    t
+                } else {
+                    Term::App(self)
+                }
+            },
             App{fun: box Term::BuildIn(BuildIns::ITE3(typ)),
                 term: box t,
                 t: _typ
