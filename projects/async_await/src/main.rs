@@ -1,20 +1,15 @@
+#![feature(async_await, futures_api, await_macro)]
 
+async fn test_1() -> Result<u32,()> {
+    Ok(0)
+}
 
-extern crate futures_await as futures;
-use futures::prelude::*;
-use futures::future::*;
-
-
-fn create_future(x: bool) -> impl Future<Item = i32, Error = i32> {
-    if x {
-        ok::<i32,i32>(0)
-    }else{
-        err::<i32,i32>(1)
-    }
+async fn test_2() -> Result<u32,()> {
+    let r = await!(test_1())?;
+    Ok(r+2)
 }
 
 fn main() {
-    let t = create_future(false);
-    println!("Hello, main");
-    println!("Hello, {:?}", t.wait());
+    // let r = test_2().poll();
+    // println!("{:?}", r);
 }
