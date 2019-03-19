@@ -40,6 +40,7 @@
 * [Small Lambda Calc impl](https://github.com/haetze/DemoRust/tree/master/projects/lambda_calc), untyped
 * [Small Lambda Calc impl](https://github.com/haetze/DemoRust/tree/master/projects/lambda_calc_t), typed
 * [Conway](https://github.com/haetze/DemoRust/tree/master/projects/conway)
+* [Fib Dynamic](https://github.com/haetze/DemoRust/tree/master/projects/dyn_prog)
 
 # Learning material
 * [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
