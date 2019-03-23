@@ -57,6 +57,26 @@ fn value_dyn(objects: &Vec<(usize, usize)>, k: usize) -> usize {
     value_dyn_calc(objects, 0, k, objects.len()-1, &mut map)
 }
 
+macro_rules! dynamic_get {
+    ($k:expr, $map:expr, $objects:expr, $n:expr) => (
+        match $map.get(&$k) {
+            Some(r) => r.clone(),
+            None => {
+                let k = &$k;
+                let a = value_dyn_calc($objects,
+                                       $k.0,
+                                       $k.1,
+                                       $n,
+                                       $map);
+                $map.insert(k.clone(), a);
+                $map.get(k).unwrap().clone()
+            },
+        }
+    )
+        
+}
+
+
 fn value_dyn_calc(objects: &Vec<(usize, usize)>,
                   i: usize,
                   k: usize,
@@ -76,26 +96,11 @@ fn value_dyn_calc(objects: &Vec<(usize, usize)>,
                     return value;
                 }
             } else if i < n {
-                let a = match map.get(&(i+1, k)) {
-                    None => value_dyn_calc(objects,
-                                           i+1,
-                                           k,
-                                           n,
-                                           map),
-                    Some(n) => n.clone(),
-                };
+                let a = dynamic_get!((i+1, k), map, objects, n);
                 if weight > k {
-                    map.insert(key, a);
                     return a;
                 } else {
-                    let b = match map.get(&(i+1, k- weight)) {
-                        None => value_dyn_calc(objects,
-                                               i+1,
-                                               k-weight,
-                                               n,
-                                               map) + value,
-                        Some(n) => n.clone() + value,
-                    };
+                    let b = dynamic_get!((i+1, k-weight), map, objects, n) + value;
                     if a > b {
                         map.insert(key, a);
                         return a;
