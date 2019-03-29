@@ -101,6 +101,24 @@ fn columns_ok(board: &Board) -> bool {
 
 fn square_of_index(board: &Board, index: Square_Index) -> Row {
     let mut column = [Field::X; 9];
+    /*
+    |------------------------+
+    |  L  |  M  |  R  | |    |
+    |0|1|2|3|4|5|6|7|8| |    |
+    |-----|-----|-----|------|
+    | | | | | | | | | |0|    |
+    | LU  | MU  | RU  |1| U  |
+    | | | | | | | | | |2|    |
+    |-----|-----|-----|------|
+    | | | | | | | | | |3|    |
+    | LM  | MM  | RM  |4| M  |
+    | | | | | | | | | |5|    |
+    |-----|-----|-----|------|
+    | | | | | | | | | |6|    |
+    | LD  | MD  | RD  |7| D  |
+    | | | | | | | | | |8|    |
+    |-----|-----|-----|------+
+     */
     let (x, y) = match index {
         Square_Index::Left_Up => (1,1),
         Square_Index::Left_Middle => (1,4),
