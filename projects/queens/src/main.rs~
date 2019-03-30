@@ -1,0 +1,49 @@
+#[derive(Clone,Copy,Debug, PartialEq)]
+enum Field {
+    Set,
+    Empty,
+    Blocked,
+}
+
+const SIZE : usize = 8;
+
+type Row = [Field;SIZE];
+type Board = [Row;SIZE];
+
+fn count_set(row: &Row) -> u32 {
+    row.iter().fold(0, |acc, e| {
+        if e == &Field::Set {
+            acc + 1
+        } else {
+            acc
+        }
+    })
+}
+
+fn valid_row(row: &Row) -> bool {
+    count_set(row) <= 1
+}
+
+fn valid_rows(board: &Board) -> bool {
+    board.iter().all(|r| valid_row(r))
+}
+
+fn board_rotate(board: &Board) -> Board {
+    let row = [Field::Set; SIZE];
+    let mut new_board = [row; SIZE]; // Is completely overwritten; just init
+    for x in 0..SIZE {
+        for y in 0..SIZE {
+            new_board[y][x] = board[x][y].clone();
+        }
+    }
+    new_board
+}
+
+fn diagonals(board: &Board) -> Vec<Vec<Field>> {
+    Vec::new()
+}
+
+
+fn main() {
+    println!("Hello, world!");
+}
