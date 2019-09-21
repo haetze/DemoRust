@@ -1,0 +1,43 @@
+use std::io;
+
+#[derive(Copy,Clone,Debug)]
+enum Object {
+    Sphere(f64),
+    Cube(f64),
+    Cone(f64, f64),
+}
+
+impl Object {
+    fn volume(&self) -> f64 {
+        let pi = std::f64::consts::PI;
+        match self {
+            Object::Sphere(r) => (4.0/3.0) * pi * r.powf(3.0),
+            Object::Cube(a) => a.powf(3.0),
+            Object::Cone(r, h) => (1.0/3.0) * pi * r.powf(2.0) * h,
+        }
+    }
+
+    fn others(&self) -> [Object; 2] {
+        let pi = std::f64::consts::PI;
+        
+        if let Object::Cube(a) = self {
+            let v = self.volume();
+            let r = (v / ((4.0/3.0) * pi)).nth_root(3.0);
+            [self.clone(), self.clone()]
+        } else {
+            [self.clone(), self.clone()]
+        }
+    }
+}
+
+
+fn main() {
+    let mut n = String::new();
+    io::stdin()
+        .read_line(&mut n)
+        .expect("failed to read input.");
+    let n: f64 = n.trim().parse().expect("invalid input");
+    let cube = Object::Cube(n);
+    println!("Volume Cube: {}", cube.volume()); 
+    
+}
