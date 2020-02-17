@@ -1,4 +1,5 @@
 use std::collections::{HashSet, HashMap};
+use std::fmt;
 
 type Lane = u32;
 type Elements = HashSet<Lane>;
@@ -8,6 +9,63 @@ type Weight = u32;
 type Graph = HashMap<(Lane, Lane), Weight>;
 type UsedSet = HashSet<Lane>;
 type Rank = u32;
+
+#[derive(Clone)]
+enum FinalLane {
+    S(Lane),
+    C(Elements),
+}
+
+impl fmt::Debug for FinalLane {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use FinalLane::*;
+        match self {
+            S(l) => write!(f, "{}", l),
+            C(s) => write!(f, "{:?}", s),
+        }
+    }
+}
+
+impl FinalLane {
+
+    fn add(self, other : Lane) -> FinalLane {
+        use FinalLane::*;
+        match self {
+            S(l) => {
+                if l == other {
+                    return S(l);
+                } else {
+                    let mut s = HashSet::new();
+                    s.insert(l);
+                    s.insert(other);
+                    return C(s);
+                }
+            },
+            C(mut s) => {
+                s.insert(other);
+                return C(s);
+            },
+        }
+    }
+    fn from_orders(orders : Orders) -> Vec<FinalLane> {
+        use FinalLane::*;
+        
+        let mut v = vec![];
+        for order in orders {
+            if v.is_empty() {
+                for e in order{
+                    v.push(S(e));
+                }
+            } else {
+                for i in 0..order.len() {
+                    let tmp = v[i].clone().add(order[i]);
+                    v[i] = tmp;
+                }
+            }
+        }
+        return v;
+    }
+}
 
 fn main() {
     let orders : Orders = vec![vec![1,2,3,4],
@@ -35,7 +93,12 @@ fn main() {
     }
 
     println!("Paths: {:?} with Rank: {:?}", final_paths, final_rank);
+
+    let unified = FinalLane::from_orders(final_paths);
+    println!("Unified Path: {:?}", unified);
 }
+
+
 
 fn try_path(start : u32, graph : &Graph, used : &mut UsedSet) -> (Orders, Rank) {
     let mut orders = HashSet::new();
@@ -47,7 +110,7 @@ fn try_path(start : u32, graph : &Graph, used : &mut UsedSet) -> (Orders, Rank) 
 
         if start == beginning && !used.contains(&end) {
             used.insert(end);
-            let (mut paths, rank) = try_path(end, graph, used);
+            let (paths, rank) = try_path(end, graph, used);
             if rank + weight == value {
                 for mut path in paths {
                     path.push(start);
