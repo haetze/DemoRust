@@ -2,6 +2,12 @@
 name = "async_await"
 version = "0.1.0"
 authors = ["Richard Stewing <richy.sting@gmail.com>"]
+edition = "2018"
+
+[dependencies.async-std]
+version = "1.0.0"
+features = ["attributes", "unstable"]
 
 [dependencies]
-futures = "0.1.25"
+#futures = "0.1.25"
+
