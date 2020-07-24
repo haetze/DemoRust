@@ -44,6 +44,7 @@
 * [Zielgericht-Algorithm](https://github.com/haetze/DemoRust/tree/master/projects/zielgericht)
 * [Slice Test](https://github.com/haetze/DemoRust/tree/master/projects/slice_test)
 * [Gnuplot](https://github.com/haetze/DemoRust/tree/master/projects/gnuplot)
+* [Connect 4](https://github.com/haetze/DemoRust/tree/master/projects/connect_4)
 # Learning material
 * [The Rust Programming Language](https://doc.rust-lang.org/book/) , is a good starting point
 * [Programming Rust - Fast, Safe Systems Development By Jim Blandy, Jason Orendorff](http://shop.oreilly.com/product/0636920040385.do)
