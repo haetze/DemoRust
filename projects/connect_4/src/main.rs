@@ -68,6 +68,36 @@ impl Board {
         Board::Board([[Field::E; HEIGHT]; WIDTH])
     }
 
+    fn check_dir(row : usize, column : usize, dir : Direction) -> bool {
+        use Direction::*;
+        
+        match dir {
+            Down => row < LENGTH - 1,
+            Up => row + LENGTH - 1 >= HEIGHT,
+            Right => column + LENGTH - 1 >= WIDTH,
+            Left => column < LENGTH - 1,
+            UpLeft => column < LENGTH - 1 || row + LENGTH - 1 >= HEIGHT,
+            DownLeft => column < LENGTH - 1 || row < LENGTH - 1,
+            UpRight => column + LENGTH - 1 >= WIDTH || row + LENGTH - 1 >= HEIGHT,
+            DownRight => column + LENGTH - 1 >= WIDTH || row < LENGTH - 1,
+        }
+    }
+
+    fn next_pos(row : usize, column : usize, dir : Direction) -> (usize, usize) {
+        use Direction::*;
+
+        match dir {
+            Down => (row - 1, column),
+            Up => (row + 1, column),
+            Right => (row, column + 1),
+            Left => (row, column - 1),
+            UpLeft => (row + 1, column - 1),
+            DownLeft => (row - 1, column - 1),
+            UpRight => (row + 1, column + 1),
+            DownRight => (row - 1, column + 1),
+        }
+    }
+
     fn check(&self, row: usize, column: usize, dir : Direction) -> bool {
         // When the index is not on the field
         if row >= HEIGHT || column >= WIDTH {
@@ -76,92 +106,43 @@ impl Board {
 
         let board = self.get();
         let mut elems : Vec<Field> = Vec::new();
-        match dir {
-            Direction::Down => {
-                if row < LENGTH - 1{
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row-i][column]);
-                }
-            },
-            
-            Direction::Up => {
-                if row + LENGTH - 1 >= HEIGHT {
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row+i][column]);
-                }
-            },
-
-            Direction::Right => {
-                if column + LENGTH - 1 >= WIDTH {
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row][column+i]);
-                }
-            },
-
-            Direction::Left => {
-                if column < LENGTH - 1 {
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row][column-i]);
-                }
-            },
-
-            Direction::UpLeft => {
-                if column < LENGTH - 1 || row + LENGTH - 1 >= HEIGHT {
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row+i][column-i]);
-                }
-            },
-
-            Direction::DownLeft => {
-                if column < LENGTH - 1 || row < LENGTH - 1{
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row-i][column-i]);
-                }
-            },
-            Direction::UpRight => {
-                if column + LENGTH - 1 >= WIDTH || row + LENGTH - 1 >= HEIGHT {
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row+i][column+i]);
-                }
-            },
-
-            Direction::DownRight => {
-                if column + LENGTH - 1 >= WIDTH || row < LENGTH - 1{
-                    return false;
-                }
-                for i in 0..LENGTH {
-                    elems.push(board[row-i][column+i]);
-                }
-            },
+        if Board::check_dir(row, column, dir) {
+            return false;
+        }
+        let mut y = row;
+        let mut x = column;
+        elems.push(board[y][x]);
+        for _ in 1..LENGTH {
+            let p = Board::next_pos(y, x, dir);
+            y = p.0;
+            x = p.1;
+            elems.push(board[y][x]);
         }
         return elems.into_iter().all(|x| x == board[row][column] && x != Field::E);
-        //return elems.into_iter().all(|x| x == board[row][column]);
-
     }
 
 
     fn print(&self) {
         let board = self.get();
         for i in 0..HEIGHT {
+            // Write header for each line (+-+-+)
+            for _ in 0..WIDTH {
+                print!("+-");
+            }
+            println!("+");
+            // Write cells
             for j in 0..WIDTH {
                 print!("|{}", board[HEIGHT - i - 1][j].to_char());
             }
-            println!("|")
+            println!("|");
         }
+        // Finish board wird footer (+-+-+)
+        for _ in 0..WIDTH {
+            print!("+-");
+        }
+        println!("+");
+
+        // Print identifier
         for i in 0..WIDTH {
             print!("|{}", ALPHABET[i]);
         }
@@ -255,6 +236,7 @@ fn main() {
     let mut input = String::new();
     let stdin = io::stdin();
     loop {
+        input.clear();
         match stdin.read_line(&mut input) {
             Ok(n) => {
                 if n > 4 {
