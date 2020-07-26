@@ -1,4 +1,5 @@
 use std::io;
+use std::io::BufRead;
 
 const HEIGHT : usize = 16;
 const WIDTH : usize  = 16;
@@ -233,16 +234,14 @@ fn main() {
     let mut board = Board::new();
     board.print();
     let mut player = 0;
-    let mut input = String::new();
-    let stdin = io::stdin();
-    loop {
-        input.clear();
-        match stdin.read_line(&mut input) {
-            Ok(n) => {
+    for input in io::stdin().lock().lines() {
+        match input {
+            Ok(string) => {
+                let n = string.as_bytes().len();
                 if n > 4 {
                     println!("Only enter 1 character");
                 } else {
-                    let c = input.chars().nth(0).unwrap();
+                    let c = string.chars().nth(0).unwrap();
                     if handle_input(c, &mut board, &mut player) {
                         return;
                     }
