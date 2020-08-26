@@ -6,31 +6,32 @@ use futures::future::{BoxFuture, FutureExt as FExt};
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 
+const LIMIT : usize = 64;
 
 fn split(mut arr : Vec<u32>) -> (Vec<u32>, Vec<u32>) {
     let b = arr.split_off(arr.len()/2);
     return (arr, b);
 }
 
-fn merge(a : &mut Vec<u32>, b : &mut Vec<u32>) -> Vec<u32> {
+fn merge(a : Vec<u32>, b : Vec<u32>) -> Vec<u32> {
     let n = a.len();
     let m = b.len();
     let mut v = vec![0;n+m];
 
     let mut i = 0;
     let mut j = 0;
-    for l in 0..n+m {
+    for l in &mut v {
 	if i >= n {
-	    v[l] = b[j];
+	    *l = b[j];
 	    j += 1;
 	} else if j >= m {
-	    v[l] = a[i];
+	    *l = a[i];
 	    i += 1;
 	} else if a[i] > b[j] {
-	    v[l] = b[j];
+	    *l = b[j];
 	    j += 1;
 	} else {
-	    v[l] = a[i];
+	    *l = a[i];
 	    i += 1;
 	}
     }
@@ -38,10 +39,10 @@ fn merge(a : &mut Vec<u32>, b : &mut Vec<u32>) -> Vec<u32> {
     return v;
 }
 
-fn sort(arr : Vec<u32>) -> BoxFuture<'static, Vec<u32>> {
-
+fn sort(mut arr : Vec<u32>) -> BoxFuture<'static, Vec<u32>> {
     async move {
-	if arr.len() <= 1 {
+	if arr.len() <= LIMIT {
+	    arr.sort();
 	    return arr;
 	}
 	let (a,b) = split(arr);
@@ -49,20 +50,20 @@ fn sort(arr : Vec<u32>) -> BoxFuture<'static, Vec<u32>> {
 	let b = sort(b);
 	let a = task::spawn(a);
 	let b = task::spawn(b);
-	let (mut a,mut b) = a.join(b).await;
-	let arr_s = merge(&mut a, &mut b);
-	arr_s
+	let (a,b) = a.join(b).await;
+	merge(a,b)
     }.boxed()
 }
 
-fn sort_seq(arr : Vec<u32>) -> Vec<u32> {
-    if arr.len() <= 1 {
+fn sort_seq(mut arr : Vec<u32>) -> Vec<u32> {
+    if arr.len() <= LIMIT {
+	arr.sort();
 	return arr;
     }
     let (a, b) = split(arr);
-    let mut a = sort_seq(a);
-    let mut b = sort_seq(b);
-    let arr_s = merge(&mut a, &mut b);
+    let a = sort_seq(a);
+    let b = sort_seq(b);
+    let arr_s = merge(a,b);
     return arr_s;
 }
 
@@ -94,8 +95,9 @@ async fn main() -> () {
 	//Merge Sort (parallel)
 	let u = v.clone();
 	let start =  SystemTime::now();
-	let _u_sorted = task::spawn(sort(u)).await;
+	let u_sorted = task::spawn(sort(u)).await;
 	let merge_p_time = start.elapsed().unwrap().as_nanos();
+	//println!("{:?}", u_sorted);
 
 	//Merge Sort (seq)
 	let u = v.clone();
