@@ -13,27 +13,28 @@ fn split(mut arr : Vec<u32>) -> (Vec<u32>, Vec<u32>) {
 }
 
 fn merge(a : &mut Vec<u32>, b : &mut Vec<u32>) -> Vec<u32> {
-    let mut v = Vec::with_capacity(a.len()+b.len());
-    
-    while a.len() > 0 && b.len() > 0 {
-	let n = a.pop().unwrap();
-	let m = b.pop().unwrap();
-	if n > m {
-	    v.push(n);
-	    b.push(m);
+    let n = a.len();
+    let m = b.len();
+    let mut v = vec![0;n+m];
+
+    let mut i = 0;
+    let mut j = 0;
+    for l in 0..n+m {
+	if i >= n {
+	    v[l] = b[j];
+	    j += 1;
+	} else if j >= m {
+	    v[l] = a[i];
+	    i += 1;
+	} else if a[i] > b[j] {
+	    v[l] = b[j];
+	    j += 1;
 	} else {
-	    v.push(m);
-	    a.push(n);
+	    v[l] = a[i];
+	    i += 1;
 	}
     }
-    if a.len() == 0 {
-	b.reverse();
-	v.append(b);
-    } else {
-	a.reverse();
-	v.append(a);
-    }
-    v.reverse();
+
     return v;
 }
 
@@ -69,11 +70,12 @@ fn sort_seq(arr : Vec<u32>) -> Vec<u32> {
 async fn main() -> () {
     let args : Vec<String> = env::args().collect();
     let m : u32 = args[1].parse().unwrap_or(1024);
+    std::fs::remove_file("sort.dat").unwrap();
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
 	.append(true)
-        .open("sort")
+        .open("sort.dat")
 	.unwrap();
 
     file.write_all(b"Length,merge parallel, merge seq, built in\n").unwrap();
@@ -93,19 +95,19 @@ async fn main() -> () {
 	let u = v.clone();
 	let start =  SystemTime::now();
 	let _u_sorted = task::spawn(sort(u)).await;
-	let merge_p_time = start.elapsed().unwrap().as_micros();
+	let merge_p_time = start.elapsed().unwrap().as_nanos();
 
 	//Merge Sort (seq)
 	let u = v.clone();
 	let start =  SystemTime::now();
 	let _u_sorted = sort_seq(u);
-	let merge_s_time = start.elapsed().unwrap().as_micros();
+	let merge_s_time = start.elapsed().unwrap().as_nanos();
 	
 	//Merge Sort (seq)
 	let mut u = v.clone();
 	let start =  SystemTime::now();
 	u.sort();
-	let sort_b_time = start.elapsed().unwrap().as_micros();
+	let sort_b_time = start.elapsed().unwrap().as_nanos();
 
 	let s = format!("{},{},{},{}\n", n, merge_p_time, merge_s_time, sort_b_time);
 	file.write_all(s.as_bytes()).unwrap();
