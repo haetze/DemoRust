@@ -1,6 +1,7 @@
 # Examples for Different things in [Rust](https://www.rust-lang.org/en-US/)
 
 * [Use of async and await](https://github.com/haetze/DemoRust/tree/master/projects/async_await)
+* [Const fn example](https://github.com/haetze/DemoRust/tree/master/projects/const_fn)
 * [Concurrent Merge sort](https://github.com/haetze/DemoRust/tree/master/projects/merge_sort_par)
 * [Calculating the bipartition of a graph](https://github.com/haetze/DemoRust/tree/master/projects/biparit)
 * [Little repl calculator](https://github.com/haetze/DemoRust/tree/master/projects/calc)
